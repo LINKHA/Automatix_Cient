@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "coroutine": "cpp"
+        "coroutine": "cpp",
+        "iostream": "cpp",
+        "ostream": "cpp"
     }
 }

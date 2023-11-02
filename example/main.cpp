@@ -55,6 +55,5 @@ int main() {
     while (g.move_next()) {
         std::cout << g.current_value() << " ";
     }
-
     return 0;
 }
