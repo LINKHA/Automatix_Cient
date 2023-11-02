@@ -1,6 +1,9 @@
 #include <iostream>
 #include <coroutine>
 
+#include "../../src/example/lib.h"
+
+
 struct generator {
     struct promise_type {
         int current_value;
@@ -50,6 +53,8 @@ generator generate_range(int start, int end) {
 }
 
 int main() {
+    A* a = new A();
+
     generator g = generate_range(1, 5);
 
     while (g.move_next()) {
