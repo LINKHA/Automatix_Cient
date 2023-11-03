@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.20)
-
 set (TARGET_NAME automatix_rt)
 
 # Get all source files
@@ -12,4 +10,4 @@ source_group_by_dir(SOURCE_ALL_FILES)
 
 include_directories (${AUTO_ROOT_PATH}/src)
 
-add_library (${TARGET_NAME} ${AUTO_LIB_TYPE} ${SOURCE_ALL_FILES})
+add_executable(${TARGET_NAME} ${SOURCE_ALL_FILES})

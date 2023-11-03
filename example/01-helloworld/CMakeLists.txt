@@ -1,3 +1,3 @@
 include_directories (${AUTO_ROOT_PATH}/src)
 
-add_subdirectory (01-helloworld)
+add_executable(01-helloworld main.cpp)

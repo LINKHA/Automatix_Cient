@@ -5,13 +5,14 @@
             "name": "C/C++",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "program": "${workspaceFolder}/build/automatix_rt/automatix_rt",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
+            "preLaunchTask": "build",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
