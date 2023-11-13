@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
-project(automatix)
+project(automatix
+    VERSION 0.0.1)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -24,5 +25,27 @@ macro(source_group_by_dir source_files)
     endif(MSVC)
 endmacro(source_group_by_dir)
 
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Find/)
+# add include path
+include_directories(thirdparty)
+include_directories(thirdparty/ylt/thirdparty)
+
+find_package(Threads REQUIRED)
+link_libraries(Threads::Threads)
+
+include(cmake/utils.cmake)
+include(cmake/struct_pb.cmake)
+include(cmake/build.cmake)
+include(cmake/develop.cmake)
+include(cmake/install.cmake)
+# add project config, such as enable_ssl.
+include(cmake/config.cmake)
+# add project's source such as unit test, example & benchmark
+include(cmake/subdir.cmake)
+
+
+
 add_subdirectory (automatix_rt)
 add_subdirectory (example)
+
+
