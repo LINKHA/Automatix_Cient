@@ -27,6 +27,7 @@ endmacro(source_group_by_dir)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Find/)
 # add include path
+include_directories(automatix_realtime)
 include_directories(thirdparty)
 include_directories(thirdparty/ylt/thirdparty)
 
