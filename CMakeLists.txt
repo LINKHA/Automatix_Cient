@@ -45,7 +45,7 @@ include(cmake/subdir.cmake)
 
 
 
-add_subdirectory (automatix_rt)
+add_subdirectory (automatix_realtime)
 add_subdirectory (example)
 
 

@@ -1,2 +1,2 @@
 #!/bin/bash
-./build/automatix_rt/automatix_rt
+./build/automatix_realtime/automatix_realtime

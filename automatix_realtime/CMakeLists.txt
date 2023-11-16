@@ -1,4 +1,4 @@
-set (TARGET_NAME automatix_rt)
+set (TARGET_NAME automatix_realtime)
 
 # Get all source files
 file(GLOB_RECURSE SOURCE_HEADER *.h)
