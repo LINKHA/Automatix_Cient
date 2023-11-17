@@ -1,64 +1,53 @@
-//#include <iostream>
-//#include <coroutine>
-//
-//#include "example/lib.h"
-//
-//
-//struct generator {
-//    struct promise_type {
-//        int current_value;
-//
-//        generator get_return_object() {
-//            return generator(std::coroutine_handle<promise_type>::from_promise(*this));
-//        }
-//
-//        std::suspend_always initial_suspend() { return {}; }
-//
-//        std::suspend_always final_suspend() noexcept { return {}; }
-//
-//        std::suspend_always yield_value(int value) {
-//            current_value = value;
-//            return {};
-//        }
-//
-//        void return_void() {}
-//
-//        void unhandled_exception() { throw; }
-//    };
-//
-//    std::coroutine_handle<promise_type> coroutine;
-//
-//    explicit generator(std::coroutine_handle<promise_type> coroutine_) : coroutine(coroutine_) {}
-//
-//    ~generator() {
-//        if (coroutine) {
-//            coroutine.destroy();
-//        }
-//    }
-//
-//    bool move_next() {
-//        coroutine.resume();
-//        return !coroutine.done();
-//    }
-//
-//    int current_value() const {
-//        return coroutine.promise().current_value;
-//    }
-//};
-//
-//generator generate_range(int start, int end) {
-//    for (int i = start; i <= end; ++i) {
-//        co_yield i;
-//    }
-//}
-//
-//int main() {
-//    std::cout << "automatix-runtime running" << std::endl;
-//    A* a = new A();
-//    generator g = generate_range(1, 5);
-//
-//    while (g.move_next()) {
-//        std::cout << g.current_value() << " ";
-//    }
-//    return 0;
-//}
+#include "caf/actor_ostream.hpp"
+#include "caf/actor_system.hpp"
+#include "caf/caf_main.hpp"
+#include "caf/event_based_actor.hpp"
+
+#include <iostream>
+#include <string>
+
+using namespace caf;
+
+behavior mirror(event_based_actor* self) {
+	// return the (initial) actor behavior
+	return {
+		// a handler for messages containing a single string
+		// that replies with a string
+		[=](const std::string& what) -> std::string {
+			// prints "Hello World!" via aout (thread-safe cout wrapper)
+			aout(self) << what << std::endl;
+			// reply "!dlroW olleH"
+			return std::string{what.rbegin(), what.rend()};
+		  },
+	};
+}
+
+void hello_world(event_based_actor* self, const actor& buddy) {
+	// send "Hello World!" to our buddy ...
+	self->request(buddy, std::chrono::seconds(10), "Hello World!")
+		.then(
+			// ... wait up to 10s for a response ...
+			[=](const std::string& what) {
+				// ... and print it
+				aout(self) << what << std::endl;
+			});
+}
+
+void caf_main(actor_system& sys) {
+	// create a new actor that calls 'mirror()'
+	auto mirror_actor = sys.spawn(mirror);
+	// create another actor that calls 'hello_world(mirror_actor)';
+	sys.spawn(hello_world, mirror_actor);
+	// the system will wait until both actors are done before exiting the program
+}
+
+// creates a main function for us that calls our caf_main
+//CAF_MAIN()
+
+int main(int argc, char** argv) {
+	[[maybe_unused]] auto host_init_guard = caf::detail::do_init_host_system(
+		caf::detail::type_list<>{}, caf::detail::type_list<>{});
+	caf::exec_main_init_meta_objects<>();
+	caf::core::init_global_meta_objects();
+	return caf::exec_main<>(caf_main, argc, argv);
+}

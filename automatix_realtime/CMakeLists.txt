@@ -10,3 +10,6 @@ set(SOURCE_ALL_FILES ${SOURCE_HEADER} ${SOURCE_SRC} ${SOURCE_HPP} ${SOURCE_SRC_C
 source_group_by_dir(SOURCE_ALL_FILES)
 
 add_executable(${TARGET_NAME} ${SOURCE_ALL_FILES})
+
+# target_link_libraries (${TARGET_NAME}  caf)
+target_link_libraries(${TARGET_NAME} PRIVATE CAF::internal CAF::core)
