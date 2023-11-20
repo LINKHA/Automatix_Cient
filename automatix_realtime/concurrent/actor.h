@@ -9,11 +9,13 @@
 
 namespace amx {
 
-class actor_module{
+class actor_manager {
 public:
-	actor_module();
-	virtual ~actor_module();
-	bool init();
+	actor_manager();
+	virtual ~actor_manager();
+	bool init(int argc, char** argv);
+
+
 private:
 	caf::actor_system* _actor_system;
 };

@@ -7,45 +7,45 @@ namespace amx {
 
 #define REGISTER_SINGLETON(_This) \
 public:\
-	friend struct TSingleton<_This>;\
-	static _This& Get();\
+	friend struct singleton<_This>;\
+	static _This& get();\
 
 #define IMPLEMENT_SINGLETON(_This) \
-	_This& _This::Get(){ return TSingleton<_This>::Instance(); }
+	_This& _This::get(){ return singleton<_This>::instance(); }
 
 	template <typename _Ty>
-	struct TSingleton
+	struct singleton
 	{
 	private:
-		struct ObjectCreator
+		struct object_creator
 		{
-			ObjectCreator() { TSingleton<_Ty>::Instance(); }
-			inline void DoNothing() const { }
+			object_creator() { singleton<_Ty>::instance(); }
+			inline void do_nothing() const { }
 		};
-		static ObjectCreator createObject;
+		static object_creator createObject;
 
 		static std::mutex mutex;  // Add a mutex for thread safety
 
-		TSingleton();
+		singleton();
 
 	public:
-		typedef _Ty ObjectType;
+		typedef _Ty object_type;
 
-		static ObjectType& Instance()
+		static object_type& instance()
 		{
-			static ObjectType obj;
+			static object_type obj;
 			std::lock_guard<std::mutex> lock(mutex);  // Use lock_guard to lock and unlock the mutex automatically
-			createObject.DoNothing();
+			createObject.do_nothing();
 
 			return obj;
 		}
 	};
 
 	template <typename _Ty>
-	typename TSingleton<_Ty>::ObjectCreator
-		TSingleton<_Ty>::createObject;
+	typename singleton<_Ty>::object_creator
+		singleton<_Ty>::createObject;
 
 	template <typename _Ty>
-	std::mutex TSingleton<_Ty>::mutex;  // Initialize the static mutex
+	std::mutex singleton<_Ty>::mutex;  // Initialize the static mutex
 
 }

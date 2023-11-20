@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <chrono>
 #include <functional>
@@ -100,15 +101,15 @@ private:
 
 
 
-// ContextManager class for managing multiple contexts
-// ContextManager 类，用于管理多个 context
-class ContextManager {
+// context_manager class for managing multiple contexts
+// context_manager 类，用于管理多个 context
+class context_manager {
 public:
 	// Create and store a new context
 	// 创建并存储一个新的 context
 	std::shared_ptr<context> create_context() {
 		auto ctx = std::make_shared<context>();
-		std::unique_lock<std::mutex> lock(_mutex);
+		std::unique_lock<std::shared_mutex> lock(_mutex);
 		_contexts[_next_id++] = ctx;
 		return ctx;
 	}
@@ -116,7 +117,7 @@ public:
 	// Retrieve a context by its ID
 	// 通过ID检索 context
 	std::shared_ptr<context> get_context(int id) {
-		std::shared_lock<std::mutex> lock(_mutex);
+		std::shared_lock<std::shared_mutex> lock(_mutex);
 		auto it = _contexts.find(id);
 		if (it != _contexts.end()) {
 			return it->second;
@@ -124,10 +125,11 @@ public:
 		return nullptr; // Return nullptr if not found
 	}
 
+
 	// Cancel a specific context by its ID
 	// 通过ID取消特定的 context
 	void cancel_context(int id) {
-		std::unique_lock<std::mutex> lock(_mutex);
+		std::unique_lock<std::shared_mutex> lock(_mutex);
 		auto it = _contexts.find(id);
 		if (it != _contexts.end()) {
 			it->second->cancel();
@@ -137,14 +139,14 @@ public:
 	// Cancel all contexts
 	// 取消所有 context
 	void cancel_all() {
-		std::unique_lock<std::mutex> lock(_mutex);
+		std::unique_lock<std::shared_mutex> lock(_mutex);
 		for (auto& pair : _contexts) {
 			pair.second->cancel();
 		}
 	}
 
 private:
-	std::mutex _mutex; // Mutex for thread-safe access
+	std::shared_mutex _mutex; // Mutex for thread-safe access
 	std::map<int, std::shared_ptr<context>> _contexts; // Map to store contexts with unique IDs
 	int _next_id = 0; // ID for the next context
 };
@@ -174,7 +176,7 @@ private:
 //}
 
 //int main() {
-//	ContextManager manager;
+//	context_manager manager;
 //
 //	// Create a new context
 //	auto ctx1 = manager.create_context();
