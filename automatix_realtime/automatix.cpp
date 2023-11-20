@@ -3,11 +3,19 @@
 namespace amx {
 
 IMPLEMENT_SINGLETON(automatix)
-	
+return_code::data automatix::print_logo()
+{
+	std::cout << "***********************************	\n";
+	std::cout << "*        automatix-realtime       *	\n";
+	std::cout << "*---------------------------------*	\n";
+	std::cout << "*   version: 0.0.1                *   \n";
+	std::cout << "***********************************	\n";
+	return return_code::success;
+}
 
 return_code::data automatix::loadconfig()
 {
-	return return_code::err;
+	return return_code::success;
 }
 
 return_code::data automatix::launch(int argc, char** argv)

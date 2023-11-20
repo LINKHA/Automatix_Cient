@@ -18,6 +18,7 @@ class automatix
 {
 	REGISTER_SINGLETON(automatix)
 public:
+	return_code::data print_logo();
 	return_code::data loadconfig();
 	return_code::data launch(int argc, char** argv);
 	return_code::data tick();
