@@ -1,7 +1,15 @@
 #pragma once
 #include "common/singleton.hpp"
 #include "common/context.hpp"
-#include "concurrent/actor.h"
+#include "concurrent/actor_manager.h"
+
+#include <memory>
+
+#define AMX_DEBUG 1
+
+#if AMX_DEBUG
+#include "test/automatix_test.h"
+#endif
 
 namespace amx {
 
@@ -26,9 +34,14 @@ public:
 
 	context_manager _context_manager;
 	actor_manager _actor_manager;
+
+#if AMX_DEBUG
+	automatix_test _test;
+#endif
+
 };
 
 #define CONTEXT automatix::get()._context_manager
 #define CONTEXT_BACKGROUND automatix::get()._context_manager.get_context(0)
-
+#define ACTOR automatix::get()._actor_manager
 }

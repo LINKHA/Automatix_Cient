@@ -1,5 +1,4 @@
 #include "automatix.h"
-
 namespace amx {
 
 IMPLEMENT_SINGLETON(automatix)
@@ -26,6 +25,10 @@ return_code::data automatix::launch(int argc, char** argv)
 	background->with_value("argv", argv);
 
 	_actor_manager.init(argc, argv);
+
+#if AMX_DEBUG
+	_test.init();
+#endif
 	return return_code::success;
 }
 

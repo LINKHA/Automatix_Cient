@@ -1,23 +1,35 @@
 #pragma once
 #include <memory>
-#include "caf/actor_ostream.hpp"
-#include "caf/actor_system.hpp"
-#include "caf/caf_main.hpp"
-#include "caf/event_based_actor.hpp"
+#include "caf/all.hpp"
 
 #include "base/module.h"
 
 namespace amx {
 
-class actor_manager {
+class actor_manager;
+
+//class master_actor : public caf::blocking_actor {
+//public:
+//
+//};
+//
+
+class actor {
+	friend class actor_manager;
 public:
-	actor_manager();
-	virtual ~actor_manager();
-	bool init(int argc, char** argv);
+	explicit actor();
+	virtual ~actor();
 
+	void request() {}
 
+	uint64_t id() { return _caf_actor.id(); }
+
+	std::string name() { return ""; }
 private:
-	caf::actor_system* _actor_system;
+	void set_caf_actor(caf::actor& acf_actor) {
+		_caf_actor = acf_actor;
+	}
+	caf::actor _caf_actor;
 };
 
 }
