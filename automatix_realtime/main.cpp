@@ -14,6 +14,5 @@ int main(int argc, char** argv) {
 	return try_operation([] { return automatix::get().print_logo(); })
 		|| try_operation([] { return automatix::get().loadconfig(); })
 		|| try_operation([&argc, &argv] { return automatix::get().launch(argc, argv); })
-		|| try_operation([] { return automatix::get().tick(); })
 		|| try_operation([] { return automatix::get().exit(); });
 }

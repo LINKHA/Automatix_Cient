@@ -1,4 +1,5 @@
 #include "automatix.h"
+
 namespace amx {
 
 IMPLEMENT_SINGLETON(automatix)
@@ -24,22 +25,19 @@ return_code::data automatix::launch(int argc, char** argv)
 	background->with_value("argc", argc);
 	background->with_value("argv", argv);
 
-	_actor_manager.init(argc, argv);
+	_actor_manager.launch(argc, argv);
 
-#if AMX_DEBUG
-	_test.init();
-#endif
-	return return_code::success;
-}
-
-return_code::data automatix::tick()
-{
 	return return_code::success;
 }
 
 return_code::data automatix::exit()
 {
 	return return_code::success;
+}
+
+void automatix::launch_realtime()
+{
+	std::call_once(_flag, &realtime::launch, &_rel_time);
 }
 
 }
