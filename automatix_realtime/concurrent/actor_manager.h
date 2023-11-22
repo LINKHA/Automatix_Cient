@@ -22,15 +22,14 @@ private:
 
 template <typename... _Ty> uint64_t actor_manager::spawn(const std::string& name) {
 	caf::actor act = _actor_system->spawn<_Ty...>();
-	std::shared_ptr<actor> mact = std::make_shared<actor>();
+	std::shared_ptr<actor<_Ty...>> mact = std::make_shared<actor<_Ty...>>();
 	mact->set_caf_actor(act);
 
 	uint64_t id = mact->id();
-	//auto ss = mact->name;
 
 	registry().put(id, act);
 	registry().put(name, act);
-	//registry().put(mact->name(), act);
+	mact->_name = name;
 
 	return id;
 }
