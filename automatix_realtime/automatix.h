@@ -3,6 +3,7 @@
 #include "common/context.hpp"
 #include "concurrent/actor_manager.h"
 #include "realtime/realtime.h"
+#include "common/return_code.hpp"
 
 #include <memory>
 #include <mutex>
@@ -10,15 +11,6 @@
 
 
 namespace amx {
-
-namespace return_code
-{
-	enum data
-	{
-		success,
-		err
-	};
-};
 
 class automatix
 {

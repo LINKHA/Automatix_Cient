@@ -18,4 +18,8 @@ bool actor_manager::launch(int argc, char** argv) {
 
 caf::actor_registry& actor_manager::registry() { return _actor_system->registry(); }
 
+void actor_manager::launch_master_actor(){
+
+}
+
 }
