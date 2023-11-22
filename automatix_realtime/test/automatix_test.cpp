@@ -137,6 +137,8 @@ private:
 	}
 
 	void func1(int32_t b) {
+		auto a1 = g::act().get("act1");
+		this->request(a1, std::chrono::seconds(10), "func2", 2);
 		std::cout << std::to_string(b) << std::endl;
 	}
 
@@ -165,9 +167,7 @@ private:
 
 	void func1(int32_t b) {
 		auto a3 = g::act().get("act3");
-		//this->request(a3, std::chrono::seconds(10), "func2", 2);
-
-		this->request(a3, std::chrono::seconds(10), "func2", 2);
+		this->request(a3, std::chrono::seconds(10), "func2", 1);
 		std::cout << std::to_string(b) << std::endl;
 	}
 
@@ -176,19 +176,26 @@ private:
 		this->request(a2, std::chrono::seconds(10), "func1", 2);
 		std::cout << std::to_string(b) << std::endl;
 	}
+
+	void func3(int32_t b) {
+		auto a4 = g::act().get("act4");
+		this->request(a4, std::chrono::seconds(10), "func3", 2);
+		std::cout << std::to_string(b) << std::endl;
+	}
 };
 /***************************************************************/
 void test() {
 	uint64_t id1 = g::act().spawn<master_actor>("act1");
 	uint64_t id2 = g::act().spawn<based_actor>("act2");
 	uint64_t id3 = g::act().spawn<based_actor>("act3");
+	//4Ñ­»·
+	uint64_t id4 = g::act().spawn<based_actor>("act4");
 
 	auto a1 = g::act().get(id1);
 	auto a2 = g::act().get(id2);
 
 	caf::scoped_actor self{ *g::act()._actor_system };
-	//self->send(a1, "func1", 1);
-	//self->request(a1, std::chrono::seconds(10), "func2", 2);
+	self->request(a1, std::chrono::seconds(10), "func1", 2);
 	self->request(a2, std::chrono::seconds(10), "func1", 2);
 }
 
@@ -200,9 +207,9 @@ void test() {
 
 
 void automatix_test::init() {
-	t1::test();
-	t2::test();
-	t3::test();
+	//t1::test();
+	//t2::test();
+	//t3::test();
 
 
 }
