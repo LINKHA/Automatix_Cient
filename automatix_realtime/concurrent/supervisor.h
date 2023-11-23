@@ -1,5 +1,6 @@
 #pragma once
 #include "common/common.hpp"
+#include "automatix.h"
 
 #include <iostream>
 
@@ -15,42 +16,29 @@ public:
 	/// </summary>
 	/// <param name="cfg"></param>
 	supervisor(actor_config& cfg) : event_based_actor(cfg) {}
-	/// <summary>
-	/// substratum supervisor
-	/// </summary>
-	/// <param name="cfg"></param>
-	/// <param name="base_actor"></param>
-	supervisor(actor_config& cfg, vector<supervisor>& monitor_actors) 
-		: event_based_actor(cfg) ,
-		_monitor_actors(monitor_actors)
-	{}
 
 	behavior make_behavior() override {
 		this->set_down_handler([this](const caf::down_msg& dm) {
 
 		});
-		for (auto it : _monitor_actors) {
-			this->monitor(it);
-		}
 		
 		return handler(); 
 	}
 private:
-	unordered_map<string, std::function<void(int32_t)>> fun_map = {
-		{"supervisor_handle", [this](int32_t b) { supervisor_handle(b); }}
+	unordered_map<string, std::function<void(const string& sub_actor)>> fun_map = {
+		{"supervisor_handle", [this](const string& b) { supervisor_handle(b); }},
+		{"monitor_handle", [this](const string& sub_actor) { monitor_handle(sub_actor); }}
 	};
 	behavior handler() {
 		return {
 			/*handler*/
-			[&](const std::string& fun_name, int32_t b) { fun_map[fun_name](b); }
+			[&](const std::string& fun_name, const string& b) { fun_map[fun_name](b); }
 		};
 	}
 
-	void supervisor_handle(int32_t b) {
-		std::cout << std::to_string(b) << std::endl;
-	}
+	void supervisor_handle(const string&  b);
 
-	vector<supervisor> _monitor_actors;
+	void monitor_handle(const string& sub_actor);
 };
 
 }

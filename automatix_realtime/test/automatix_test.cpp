@@ -8,6 +8,9 @@
 #include <iostream>
 #include <cassert>
 
+#include "concurrent/worker.h"
+#include "concurrent/supervisor.h"
+
 namespace amx {
 namespace test {
 /***************************************************************/
@@ -273,16 +276,51 @@ namespace t4 {
 		self->request(a1, std::chrono::seconds(10), "master_tick", 2);
 	}
 }
+/***************************************************************/
+//supervisor
+namespace t5 {
 
+class based_actor : public worker {
+public:
+	based_actor(actor_config& cfg) : worker(cfg) {}
+	behavior make_behavior() override { return handler(); }
+private:
+	unordered_map<string, std::function<void(int32_t)>> fun_map = {
+		{"func1", [this](int32_t b) { func1(b); }}
+	};
+	behavior handler() {
+		return {
+			/*handler*/
+			[&](const std::string& fun_name, int32_t b) { fun_map[fun_name](b); }
+		};
+	}
 
+	void func1(int32_t b) {
+		std::cout << std::to_string(b) << std::endl;
+	}
+};
 
+void test() {
+	uint64_t id1 = g::act().spawn<supervisor>("root");
+	g::act().spawn<supervisor>("act2");
+	g::act().spawn<supervisor>("act3");
+	g::act().spawn<supervisor>("act4");
+
+	auto a1 = g::act().get(id1);
+
+	caf::scoped_actor self{ *g::act()._actor_system };
+	self->request(a1, std::chrono::seconds(10), "monitor_handle", "act2");
+}
+
+}
+/***************************************************************/
 
 void automatix_test::init() {
 	//t1::test();
 	//t2::test();
 	//t3::test();
-	t4::test();
-
+	//t4::test();
+	t5::test();
 }
 
 void automatix_test::tick() {

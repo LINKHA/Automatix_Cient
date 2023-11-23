@@ -22,7 +22,6 @@ void realtime::launch()
 void realtime::init(const scoped_actor& bridge_actor)
 {
 	g::act().spawn<net_worker>("net_actor");
-
 	g::act().spawn<supervisor>("supervisor");
 
 #if AMX_DEBUG
@@ -40,7 +39,7 @@ void realtime::tick(const scoped_actor& bridge_actor)
 		if (1) {
 			/*bridge_actor->request(net_actor, std::chrono::seconds(10), "net_handle", 2);*/
 
-			bridge_actor->request(supervisor, std::chrono::seconds(10), "supervisor_handle", 2);
+			bridge_actor->request(supervisor, std::chrono::seconds(10), "supervisor_handle", "2");
 
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
