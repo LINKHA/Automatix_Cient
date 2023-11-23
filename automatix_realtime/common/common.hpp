@@ -27,4 +27,6 @@ using blocking_actor = caf::blocking_actor;
 using scoped_actor = caf::scoped_actor;
 using behavior = caf::behavior;
 using actor_config = caf::actor_config;
+using actor_system = caf::actor_system;
+
 }

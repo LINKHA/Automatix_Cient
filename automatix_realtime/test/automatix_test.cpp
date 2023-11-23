@@ -183,7 +183,7 @@ private:
 		std::cout << std::to_string(b) << std::endl;
 	}
 };
-/***************************************************************/
+
 void test() {
 	uint64_t id1 = g::act().spawn<master_actor>("act1");
 	uint64_t id2 = g::act().spawn<based_actor>("act2");
@@ -201,7 +201,78 @@ void test() {
 
 }
 /***************************************************************/
+//blocking_actor test
+namespace t4 {
+	class master_actor : public blocking_actor {
+	public:
+		master_actor(actor_config& cfg) : blocking_actor(cfg) {}
+		void act() override { handler(); }
+	private:
+		unordered_map<string, std::function<void(int32_t)>> fun_map = {
+			{"master_tick", [this](int32_t b) { master_tick(b); }}
+		};
+		void handler() {
+			bool running = true;
+			this->receive_while(running)(
+				/*handler*/
+				[&](const std::string& fun_name, int32_t b) { fun_map[fun_name](b); },
+				/*exit_handler*/
+				[&](caf::exit_msg& em) {
+					if (em.reason) {
+						this->fail_state(std::move(em.reason));
+						running = false;
+					}
+				}
+			);
+		}
 
+		void master_tick(int32_t b) {
+			auto a2 = g::act().get("act2");
+			auto a3 = g::act().get("act3");
+			auto a4 = g::act().get("act4");
+
+			bool exit = false;
+			/*while (!exit) {*/
+				std::cout << "master_tick" << std::endl;
+				this->request(a2, std::chrono::seconds(10), "func1", 2);
+				this->request(a3, std::chrono::seconds(10), "func1", 3);
+				this->request(a4, std::chrono::seconds(10), "func1", 4);
+			//}
+		}
+	};
+
+	class based_actor : public event_based_actor {
+	public:
+		based_actor(actor_config& cfg) : event_based_actor(cfg) {}
+		behavior make_behavior() override { return handler(); }
+	private:
+		unordered_map<string, std::function<void(int32_t)>> fun_map = {
+			{"func1", [this](int32_t b) { func1(b); }}
+		};
+		behavior handler() {
+			return {
+				/*handler*/
+				[&](const std::string& fun_name, int32_t b) { fun_map[fun_name](b); }
+			};
+		}
+
+		void func1(int32_t b) {
+			std::cout << std::to_string(b) << std::endl;
+		}
+	};
+
+	void test() {
+		uint64_t id1 = g::act().spawn<master_actor>("act1");
+		g::act().spawn<based_actor>("act2");
+		g::act().spawn<based_actor>("act3");
+		g::act().spawn<based_actor>("act4");
+
+		auto a1 = g::act().get(id1);
+
+		caf::scoped_actor self{ *g::act()._actor_system };
+		self->request(a1, std::chrono::seconds(10), "master_tick", 2);
+	}
+}
 
 
 
@@ -210,7 +281,7 @@ void automatix_test::init() {
 	//t1::test();
 	//t2::test();
 	//t3::test();
-
+	t4::test();
 
 }
 

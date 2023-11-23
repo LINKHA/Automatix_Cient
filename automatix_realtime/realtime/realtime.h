@@ -1,6 +1,8 @@
 #pragma once
 
-#define AMX_DEBUG 1
+#include "common/common.hpp"
+
+#define AMX_DEBUG 0
 #if AMX_DEBUG
 #include "test/automatix_test.h"
 #endif
@@ -15,9 +17,9 @@ public:
 
 private:
 	void launch();
-	void init();
-	void tick();
-	void exit();
+	void init(const scoped_actor& bridge_actor);
+	void tick(const scoped_actor& bridge_actor);
+	void exit(const scoped_actor& bridge_actor);
 
 #if AMX_DEBUG
 	test::automatix_test _test;

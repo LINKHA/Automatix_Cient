@@ -4,14 +4,13 @@
 
 #include "caf/all.hpp"
 #include "concurrent/actor.h"
-#include "concurrent/master_actor.h"
 
 namespace amx {
 
 class actor_manager {
 public:
-	actor_manager(){}
-	virtual ~actor_manager() {}
+	actor_manager();
+	virtual ~actor_manager();
 	bool launch(int argc, char** argv);
 
 	template <typename... _Ty> uint64_t spawn(const string& name = "");
@@ -22,9 +21,6 @@ public:
 	caf::actor_registry& registry();
 	
 	caf::actor_system* _actor_system;
-
-	void launch_master_actor();
-	/*s_ptr<master_actor>*/
 private:
 	
 };
