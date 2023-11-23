@@ -29,4 +29,10 @@ using behavior = caf::behavior;
 using actor_config = caf::actor_config;
 using actor_system = caf::actor_system;
 
+#define DECLARE_CLASS(_This,_Base) \
+public: \
+	using self = _This;\
+	using super = _Base;\
+public:
+
 }

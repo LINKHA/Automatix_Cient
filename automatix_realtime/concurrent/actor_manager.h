@@ -14,7 +14,9 @@ public:
 	bool launch(int argc, char** argv);
 
 	template <typename... _Ty> uint64_t spawn(const string& name = "");
-
+	template <typename... _Ty> uint64_t spawn_supervisor_child(const string& name = "");
+	template <typename... _Ty> uint64_t spawn_worker_child(const string& name = "");
+	void spawn_in_groups() {}
 	const caf::actor& get(uint64_t id) { return registry().get<caf::actor>(id); }
 	const caf::actor& get(const string& name) { return registry().get<caf::actor>(name); }
 
@@ -38,5 +40,9 @@ template <typename... _Ty> uint64_t actor_manager::spawn(const string& name) {
 
 	return id;
 }
+
+template <typename... _Ty> uint64_t spawn_supervisor_child(const string& name = "");
+
+template <typename... _Ty> uint64_t spawn_worker_child(const string& name = "");
 
 }

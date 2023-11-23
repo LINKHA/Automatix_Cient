@@ -1,10 +1,14 @@
+#pragma once
 #include "common/common.hpp"
+#include "concurrent/worker.h"
+
+#include <iostream>
 
 namespace amx {
 
-class net_actor : public event_based_actor {
+class net_worker : public worker {
 public:
-	net_actor(actor_config& cfg) : event_based_actor(cfg) {}
+	net_worker(actor_config& cfg) : worker(cfg) {}
 	behavior make_behavior() override { return handler(); }
 private:
 	unordered_map<string, std::function<void(int32_t)>> fun_map = {
