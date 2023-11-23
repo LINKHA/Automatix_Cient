@@ -3,7 +3,7 @@
 #include <chrono>   
 #include <thread>   
 
-#include "actor_module/net_actor.h"
+#include "actor_module/net_worker.h"
 
 #include "concurrent/supervisor.h"
 
@@ -21,25 +21,25 @@ void realtime::launch()
 
 void realtime::init(const scoped_actor& bridge_actor)
 {
-	g::act().spawn<net_worker>("net_actor");
-	g::act().spawn<supervisor>("supervisor");
+	g::act().spawn<supervisor>("net_supervisor");
+	g::act().spawn<net_worker>("net_worker1");
 
+	auto supervisor = g::act().get("net_supervisor");
+	bridge_actor->request(supervisor, std::chrono::seconds(10), msg_type::add_monitor("net_worker1"));
 #if AMX_DEBUG
 	_test.init();
 #endif
 }
 void realtime::tick(const scoped_actor& bridge_actor)
 {
+
+
 	bool exit = false;
-	//auto net_actor = g::act().get("net_actor");
-	auto supervisor = g::act().get("supervisor");
+
 
 	while (!exit) {
 
 		if (1) {
-			/*bridge_actor->request(net_actor, std::chrono::seconds(10), "net_handle", 2);*/
-
-			bridge_actor->request(supervisor, std::chrono::seconds(10), "supervisor_handle", "2");
 
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));

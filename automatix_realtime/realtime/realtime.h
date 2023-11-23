@@ -2,7 +2,7 @@
 
 #include "common/common.hpp"
 
-#define AMX_DEBUG 1
+#define AMX_DEBUG 0
 #if AMX_DEBUG
 #include "test/automatix_test.h"
 #endif

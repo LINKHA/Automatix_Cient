@@ -11,6 +11,9 @@
 #include "concurrent/worker.h"
 #include "concurrent/supervisor.h"
 
+#include "common/var_list.hpp"
+#include "concurrent/actor_config.h"
+
 namespace amx {
 namespace test {
 /***************************************************************/
@@ -301,15 +304,16 @@ private:
 };
 
 void test() {
-	uint64_t id1 = g::act().spawn<supervisor>("root");
-	g::act().spawn<supervisor>("act2");
-	g::act().spawn<supervisor>("act3");
-	g::act().spawn<supervisor>("act4");
-
-	auto a1 = g::act().get(id1);
+	g::act().spawn<supervisor>("net_supervisor");
+	g::act().spawn<worker>("worker1");
+	g::act().spawn<worker>("worker2");
+	g::act().spawn<worker>("worker3");
+	g::act().spawn<worker>("worker4");
+	auto supervisor = g::act().get("net_supervisor");
 
 	caf::scoped_actor self{ *g::act()._actor_system };
-	self->request(a1, std::chrono::seconds(10), "monitor_handle", "act2");
+	self->request(supervisor, std::chrono::seconds(10), msg_type::add_monitor("worker1"));
+	self->request(supervisor, std::chrono::seconds(10), msg_type::add_monitors{ "worker2", "worker3", "worker4" });
 }
 
 }
