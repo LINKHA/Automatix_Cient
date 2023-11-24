@@ -1,59 +1,13 @@
-#include <iostream>
-#include <coroutine>
+#include <ylt/coro_rpc/coro_rpc_server.hpp>
 
-struct generator {
-    struct promise_type {
-        int current_value;
-
-        generator get_return_object() {
-            return generator(std::coroutine_handle<promise_type>::from_promise(*this));
-        }
-
-        std::suspend_always initial_suspend() { return {}; }
-
-        std::suspend_always final_suspend() noexcept { return {}; }
-
-        std::suspend_always yield_value(int value) {
-            current_value = value;
-            return {};
-        }
-
-        void return_void() {}
-
-        void unhandled_exception() { throw; }
-    };
-
-    std::coroutine_handle<promise_type> coroutine;
-
-    explicit generator(std::coroutine_handle<promise_type> coroutine_) : coroutine(coroutine_) {}
-
-    ~generator() {
-        if (coroutine) {
-            coroutine.destroy();
-        }
-    }
-
-    bool move_next() {
-        coroutine.resume();
-        return !coroutine.done();
-    }
-
-    int current_value() const {
-        return coroutine.promise().current_value;
-    }
-};
-
-generator generate_range(int start, int end) {
-    for (int i = start; i <= end; ++i) {
-        co_yield i;
-    }
-}
+inline std::string echo(std::string str) { return str; }
 
 int main() {
-    generator g = generate_range(1, 5);
 
-    while (g.move_next()) {
-        std::cout << g.current_value() << " ";
-    }
-    return 0;
+	// 初始化服务器
+	coro_rpc::coro_rpc_server server(/*thread_num =*/10, /*port =*/9000);
+
+	server.register_handler<echo>(); // 注册rpc函数
+
+	server.start(); // 启动server并阻塞等待
 }

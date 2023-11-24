@@ -23,9 +23,9 @@ public:
 
 	void launch_realtime();
 
-	context_manager _context_manager;
-	actor_manager _actor_manager;
-	realtime _rel_time;
+	context_manager context_manager_;
+	actor_manager actor_manager_;
+	realtime rel_time_;
 
 	
 private:
@@ -34,13 +34,13 @@ private:
 
 namespace g {
 	static context_manager& ctx() {
-		return automatix::get()._context_manager;
+		return automatix::get().context_manager_;
 	}
 	static actor_manager& act() {
-		return automatix::get()._actor_manager;
+		return automatix::get().actor_manager_;
 	}
 	static realtime& rt() {
-		return automatix::get()._rel_time;
+		return automatix::get().rel_time_;
 	}
 }
 

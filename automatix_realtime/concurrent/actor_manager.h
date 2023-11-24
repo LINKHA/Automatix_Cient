@@ -22,13 +22,13 @@ public:
 
 	caf::actor_registry& registry();
 	
-	caf::actor_system* _actor_system;
+	caf::actor_system* actor_system_;
 private:
 	
 };
 
 template <typename... _Ty> uint64_t actor_manager::spawn(const string& name) {
-	caf::actor act = _actor_system->spawn<_Ty...>();
+	caf::actor act = actor_system_->spawn<_Ty...>();
 	s_ptr<actor<_Ty...>> mact = make_shared<actor<_Ty...>>();
 	mact->set_caf_actor(act);
 

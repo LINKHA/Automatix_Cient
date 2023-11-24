@@ -109,7 +109,7 @@ void test() {
 	uint64_t id1 = g::act().spawn<calculator>("act1");
 	auto a1 = g::act().registry().get<caf::actor>(id1);
 
-	caf::scoped_actor self{ *g::act()._actor_system };
+	caf::scoped_actor self{ *g::act().actor_system_ };
 	self->send(a1, "hi there");
 	self->request(a1, std::chrono::seconds(10), "hi there2");
 }
@@ -200,7 +200,7 @@ void test() {
 	auto a1 = g::act().get(id1);
 	auto a2 = g::act().get(id2);
 
-	caf::scoped_actor self{ *g::act()._actor_system };
+	caf::scoped_actor self{ *g::act().actor_system_ };
 	self->request(a1, std::chrono::seconds(10), "func1", 2);
 	self->request(a2, std::chrono::seconds(10), "func1", 2);
 }
@@ -275,7 +275,7 @@ namespace t4 {
 
 		auto a1 = g::act().get(id1);
 
-		caf::scoped_actor self{ *g::act()._actor_system };
+		caf::scoped_actor self{ *g::act().actor_system_ };
 		self->request(a1, std::chrono::seconds(10), "master_tick", 2);
 	}
 }
@@ -311,7 +311,7 @@ void test() {
 	g::act().spawn<worker>("worker4");
 	auto supervisor = g::act().get("net_supervisor");
 
-	caf::scoped_actor self{ *g::act()._actor_system };
+	caf::scoped_actor self{ *g::act().actor_system_ };
 	self->request(supervisor, std::chrono::seconds(10), msg_type::add_monitor("worker1"));
 	self->request(supervisor, std::chrono::seconds(10), msg_type::add_monitors{ "worker2", "worker3", "worker4" });
 }

@@ -12,7 +12,7 @@ namespace amx {
 void realtime::launch()
 {
 	//Creating a bridge_actor in realtime mode provides a realtime scoped call to the actor
-	scoped_actor bridge_actor{ *g::act()._actor_system };
+	scoped_actor bridge_actor{ *g::act().actor_system_ };
 
 	init(bridge_actor);
 	tick(bridge_actor);
@@ -27,7 +27,7 @@ void realtime::init(const scoped_actor& bridge_actor)
 	auto supervisor = g::act().get("net_supervisor");
 	bridge_actor->request(supervisor, std::chrono::seconds(10), msg_type::add_monitor("net_worker1"));
 #if AMX_DEBUG
-	_test.init();
+	test_.init();
 #endif
 }
 void realtime::tick(const scoped_actor& bridge_actor)

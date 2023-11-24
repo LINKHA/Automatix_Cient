@@ -17,12 +17,12 @@ bool actor_manager::launch(int argc, char** argv) {
 	caf::exec_main_init_meta_objects<caf::id_block::amx_msg_type>();
 	caf::core::init_global_meta_objects();
 	auto res = caf::exec_main<caf::id_block::amx_msg_type>([this](caf::actor_system& sys) {
-		_actor_system = &sys;
+		actor_system_ = &sys;
 		automatix::get().launch_realtime();
 		}, argc, argv);
 	return res;
 }
 
-caf::actor_registry& actor_manager::registry() { return _actor_system->registry(); }
+caf::actor_registry& actor_manager::registry() { return actor_system_->registry(); }
 
 }

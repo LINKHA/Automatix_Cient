@@ -22,7 +22,7 @@ private:
 	void exit(const scoped_actor& bridge_actor);
 
 #if AMX_DEBUG
-	test::automatix_test _test;
+	test::automatix_test test_;
 #endif
 
 };

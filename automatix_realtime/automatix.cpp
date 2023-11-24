@@ -21,11 +21,11 @@ return_code::data automatix::loadconfig()
 return_code::data automatix::launch(int argc, char** argv)
 {
 	// create id 0 context
-	std::shared_ptr<context> background = _context_manager.create_context();
+	std::shared_ptr<context> background = context_manager_.create_context();
 	background->with_value("argc", argc);
 	background->with_value("argv", argv);
 
-	_actor_manager.launch(argc, argv);
+	actor_manager_.launch(argc, argv);
 
 	return return_code::success;
 }
@@ -37,7 +37,7 @@ return_code::data automatix::exit()
 
 void automatix::launch_realtime()
 {
-	std::call_once(_flag, &realtime::launch, &_rel_time);
+	std::call_once(_flag, &realtime::launch, &rel_time_);
 }
 
 }

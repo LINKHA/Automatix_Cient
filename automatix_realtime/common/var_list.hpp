@@ -8,13 +8,13 @@ namespace amx {
 
 class var_list {
 public:
-	var_list(std::initializer_list<std::any> args) : _values(args) {}
+	var_list(std::initializer_list<std::any> args) : values_(args) {}
 
 	template <typename _Ty>
 	_Ty get(size_t index) const {
-		if (index < _values.size()) {
+		if (index < values_.size()) {
 			try {
-				return std::any_cast<_Ty>(_values[index]);
+				return std::any_cast<_Ty>(values_[index]);
 			}
 			catch (const std::bad_any_cast& e) {
 				std::cerr << "Error: " << e.what() << std::endl;
@@ -24,7 +24,7 @@ public:
 	}
 
 private:
-	std::vector<std::any> _values;
+	std::vector<std::any> values_;
 };
 // example
 //int main() {

@@ -32,13 +32,13 @@ public:
 	void send_sync(uint64_t actor_id) {}
 	void send_sync(const string& name) {}
 
-	uint64_t id() { return _caf_actor.id(); }
+	uint64_t id() { return caf_actor_.id(); }
 	string name() { return _name; }
 private:
 	void set_caf_actor(caf::actor& acf_actor) {
-		_caf_actor = acf_actor;
+		caf_actor_ = acf_actor;
 	}
-	caf::actor _caf_actor;
+	caf::actor caf_actor_;
 	string _name{};
 };
 
