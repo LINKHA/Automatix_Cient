@@ -17,9 +17,9 @@ public:
 
 private:
 	void launch();
-	void init(const scoped_actor& bridge_actor);
-	void tick(const scoped_actor& bridge_actor);
-	void exit(const scoped_actor& bridge_actor);
+	void init();
+	void tick();
+	void exit();
 
 #if AMX_DEBUG
 	test::automatix_test test_;

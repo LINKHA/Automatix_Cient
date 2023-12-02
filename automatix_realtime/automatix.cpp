@@ -25,8 +25,6 @@ return_code::data automatix::launch(int argc, char** argv)
 	background->with_value("argc", argc);
 	background->with_value("argv", argv);
 
-	actor_manager_.launch(argc, argv);
-
 	return return_code::success;
 }
 

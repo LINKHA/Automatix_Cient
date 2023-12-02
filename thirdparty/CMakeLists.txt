@@ -1,1 +1,0 @@
-add_subdirectory(${AUTO_ROOT_PATH}/thirdparty/libcaf_core) 

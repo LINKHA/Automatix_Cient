@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include "caf/all.hpp"
 
 namespace amx {
 template<typename _Ty> using s_ptr = std::shared_ptr<_Ty>;
@@ -20,14 +19,6 @@ using string = std::string;
 template<typename _Ty> using vector = std::vector<_Ty>;
 template<typename _Ty1, typename _Ty2> using unordered_map = std::unordered_map<_Ty1, _Ty2>;
 template<typename _Ty> using unordered_set = std::unordered_set<_Ty>;
-
-
-using event_based_actor = caf::event_based_actor;
-using blocking_actor = caf::blocking_actor;
-using scoped_actor = caf::scoped_actor;
-using behavior = caf::behavior;
-using actor_config = caf::actor_config;
-using actor_system = caf::actor_system;
 
 #define DECLARE_CLASS(_This,_Base) \
 public: \
