@@ -11,9 +11,9 @@
 
 namespace amx {
 
-class automatix
+class server
 {
-	REGISTER_SINGLETON(automatix)
+	REGISTER_SINGLETON(server)
 public:
 	return_code::data print_logo();
 	return_code::data loadconfig();
@@ -32,10 +32,10 @@ private:
 
 namespace g {
 	static context_manager& ctx() {
-		return automatix::get().context_manager_;
+		return server::get().context_manager_;
 	}
 	static realtime& rt() {
-		return automatix::get().rel_time_;
+		return server::get().rel_time_;
 	}
 }
 

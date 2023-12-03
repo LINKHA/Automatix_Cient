@@ -1,5 +1,4 @@
 #include "automatix_test.h"
-#include "automatix.h"
 #include "common/common.hpp"
 
 

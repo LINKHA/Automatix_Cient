@@ -1,4 +1,4 @@
-#include "automatix.h"
+#include "kernel/server.h"
 #include "common/time.hpp"
 
 using namespace amx;
@@ -13,8 +13,8 @@ int main(int argc, char** argv) {
 		return (res_code == return_code::success) ? res_code : res_code;
 	};
 
-	return try_operation([] { return automatix::get().print_logo(); })
-		|| try_operation([] { return automatix::get().loadconfig(); })
-		|| try_operation([&argc, &argv] { return automatix::get().launch(argc, argv); })
-		|| try_operation([] { return automatix::get().exit(); });
+	return try_operation([] { return server::get().print_logo(); })
+		|| try_operation([] { return server::get().loadconfig(); })
+		|| try_operation([&argc, &argv] { return server::get().launch(argc, argv); })
+		|| try_operation([] { return server::get().exit(); });
 }

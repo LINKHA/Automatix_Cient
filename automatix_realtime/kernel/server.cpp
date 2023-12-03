@@ -1,9 +1,9 @@
-#include "automatix.h"
+#include "server.h"
 
 namespace amx {
 
-IMPLEMENT_SINGLETON(automatix)
-return_code::data automatix::print_logo()
+IMPLEMENT_SINGLETON(server)
+return_code::data server::print_logo()
 {
 	std::cout << "***********************************	\n";
 	std::cout << "*        automatix-realtime       *	\n";
@@ -13,12 +13,12 @@ return_code::data automatix::print_logo()
 	return return_code::success;
 }
 
-return_code::data automatix::loadconfig()
+return_code::data server::loadconfig()
 {
 	return return_code::success;
 }
 
-return_code::data automatix::launch(int argc, char** argv)
+return_code::data server::launch(int argc, char** argv)
 {
 	// create id 0 context
 	std::shared_ptr<context> background = context_manager_.create_context();
@@ -30,14 +30,14 @@ return_code::data automatix::launch(int argc, char** argv)
 	return return_code::success;
 }
 
-return_code::data automatix::exit()
+return_code::data server::exit()
 {
 	return return_code::success;
 }
 
-void automatix::launch_realtime()
+void server::launch_realtime()
 {
-	std::call_once(_flag, &realtime::launch, &rel_time_);
+	/*std::call_once(_flag, &realtime::launch, &rel_time_);*/
 }
 
 }
