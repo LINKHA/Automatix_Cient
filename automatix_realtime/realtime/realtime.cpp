@@ -1,7 +1,7 @@
 #include "realtime.h"
 #include "automatix.h"
-#include <chrono>   
-#include <thread>   
+#include <chrono>
+#include <thread>
 
 namespace amx {
 
@@ -20,10 +20,7 @@ void realtime::init()
 }
 void realtime::tick()
 {
-
-
 	bool exit = false;
-
 
 	while (!exit) {
 

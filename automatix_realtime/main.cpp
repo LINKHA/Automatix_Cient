@@ -1,10 +1,12 @@
 #include "automatix.h"
+#include "common/time.hpp"
 
 using namespace amx;
 
-
 int main(int argc, char** argv) {
 	return_code::data res_code;
+
+	time::timezone();
 
 	auto try_operation = [&res_code](auto&& operation) {
 		res_code = operation();
