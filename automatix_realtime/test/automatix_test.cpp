@@ -9,14 +9,14 @@
 #include "common/var_list.hpp"
 
 namespace amx {
-namespace test {
-void automatix_test::init() {
+	namespace test {
+		void automatix_test::init() {
 
-}
+		}
 
-void automatix_test::tick() {
+		void automatix_test::tick() {
 
-}
+		}
 
-}
+	}
 }

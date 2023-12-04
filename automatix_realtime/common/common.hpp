@@ -125,179 +125,183 @@ using namespace std::literals::string_view_literals;
 
 namespace amx
 {
-template<typename _Ty> using s_ptr = std::shared_ptr<_Ty>;
-template<typename _Ty> using u_ptr = std::unique_ptr<_Ty>;
-template<typename _Ty> using w_ptr = std::weak_ptr<_Ty>;
-template<typename _Ty1, typename _Ty2> s_ptr<_Ty1> p_static_cast(const s_ptr<_Ty2>& other) { return std::static_pointer_cast<_Ty1>(other); }
-template<typename _Ty1, typename _Ty2> s_ptr<_Ty1> p_dynamic_cast(const s_ptr<_Ty2>& other) { return std::dynamic_pointer_cast<_Ty1>(other); }
-template<class _Ty, class... _Types> s_ptr<_Ty> make_shared(_Types&&... args) { return std::make_shared<_Ty>(std::forward<_Types>(args)...); }
-template<class _Ty, class... _Types> u_ptr<_Ty> make_unique(_Types&&... args) { return std::make_unique<_Ty>(std::forward<_Types>(args)...); }
-template<typename _Ty> using enable_ptr_this = std::enable_shared_from_this<_Ty>;
+	template<typename _Ty> using s_ptr = std::shared_ptr<_Ty>;
+	template<typename _Ty> using u_ptr = std::unique_ptr<_Ty>;
+	template<typename _Ty> using w_ptr = std::weak_ptr<_Ty>;
+	template<typename _Ty1, typename _Ty2> s_ptr<_Ty1> p_static_cast(const s_ptr<_Ty2>& other) { return std::static_pointer_cast<_Ty1>(other); }
+	template<typename _Ty1, typename _Ty2> s_ptr<_Ty1> p_dynamic_cast(const s_ptr<_Ty2>& other) { return std::dynamic_pointer_cast<_Ty1>(other); }
+	template<class _Ty, class... _Types> s_ptr<_Ty> make_shared(_Types&&... args) { return std::make_shared<_Ty>(std::forward<_Types>(args)...); }
+	template<class _Ty, class... _Types> u_ptr<_Ty> make_unique(_Types&&... args) { return std::make_unique<_Ty>(std::forward<_Types>(args)...); }
+	template<typename _Ty> using enable_ptr_this = std::enable_shared_from_this<_Ty>;
 
-using string = std::string;
-template<typename _Ty> using vector = std::vector<_Ty>;
-template<typename _Ty1, typename _Ty2> using unordered_map = std::unordered_map<_Ty1, _Ty2>;
-template<typename _Ty> using unordered_set = std::unordered_set<_Ty>;
+	using string = std::string;
+	template<typename _Ty> using vector = std::vector<_Ty>;
+	template<typename _Ty1, typename _Ty2> using unordered_map = std::unordered_map<_Ty1, _Ty2>;
+	template<typename _Ty> using unordered_set = std::unordered_set<_Ty>;
 
-#define DECLARE_CLASS(_This,_Base) \
-public: \
-using self = _This;\
-using super = _Base;\
-public:
+	#define DECLARE_CLASS(_This,_Base) \
+	public: \
+		_This& operator=(_This&&) = delete;   \
+		_This& operator=(const _This&)= delete;  \
+		using self = _This;\
+		using super = _Base;\
+		virtual const string& get_type_name() const { return get_type_name_static(); } \
+		static const string& get_type_name_static() { static const string type(#_This); return type; } \
+	public:
 
-inline void print(string var) {
-	std::cout << var << std::endl;
-}
-
-
-inline size_t _thread_id()
-{
-#ifdef _WIN32
-	return  static_cast<size_t>(::GetCurrentThreadId());
-#elif __linux__
-# if defined(__ANDROID__) && defined(__ANDROID_API__) && (__ANDROID_API__ < 21)
-#  define SYS_gettid __NR_gettid
-# endif
-	return  static_cast<size_t>(syscall(SYS_gettid));
-#elif __FreeBSD__
-	long tid;
-	thr_self(&tid);
-	return static_cast<size_t>(tid);
-#else //Default to standard C++11 (OSX and other Unix)
-	return static_cast<size_t>(std::hash<std::thread::id>()(std::this_thread::get_id())) % 10000000;
-#endif
-}
-
-//Return current thread id as size_t (from thread local storage)
-inline size_t thread_id()
-{
-#if defined(_MSC_VER) && (_MSC_VER < 1900) || defined(__clang__) && !__has_feature(cxx_thread_local)
-	return _thread_id();
-#else
-	static thread_local const size_t tid = _thread_id();
-	return tid;
-#endif
-}
-
-inline int pid()
-{
-#if (TARGET_PLATFORM == PLATFORM_WINDOWS)
-	return ::_getpid();
-#else
-	return static_cast<int>(::getpid());
-#endif
-}
-
-using FuncBindTuple = std::tuple <decltype(std::placeholders::_1), decltype(std::placeholders::_2), decltype(std::placeholders::_3), decltype(std::placeholders::_4), decltype(std::placeholders::_5), decltype(std::placeholders::_6) >;
-
-namespace detail
-{
-	template<typename TFunc, std::size_t... I>
-	auto make_bind_imp(const TFunc& fn, std::index_sequence<I...>) -> decltype(std::bind(fn, typename std::tuple_element<I, FuncBindTuple>::type()...))
-	{
-		return std::bind(fn, typename std::tuple_element<I, FuncBindTuple>::type()...);
+	inline void print(string var) {
+		std::cout << var << std::endl;
 	}
 
-	template<typename TFunc, typename TObjectPointer, std::size_t... I>
-	auto make_bind_imp(const TFunc& fn, TObjectPointer obj, std::index_sequence<I...>) -> decltype(std::bind(fn, obj, typename std::tuple_element<I, FuncBindTuple>::type()...))
+
+	inline size_t _thread_id()
 	{
-		return std::bind(fn, obj, typename std::tuple_element<I, FuncBindTuple>::type()...);
+	#ifdef _WIN32
+		return  static_cast<size_t>(::GetCurrentThreadId());
+	#elif __linux__
+	# if defined(__ANDROID__) && defined(__ANDROID_API__) && (__ANDROID_API__ < 21)
+	#  define SYS_gettid __NR_gettid
+	# endif
+		return  static_cast<size_t>(syscall(SYS_gettid));
+	#elif __FreeBSD__
+		long tid;
+		thr_self(&tid);
+		return static_cast<size_t>(tid);
+	#else //Default to standard C++11 (OSX and other Unix)
+		return static_cast<size_t>(std::hash<std::thread::id>()(std::this_thread::get_id())) % 10000000;
+	#endif
 	}
-}
 
-//std::function<R(TClass*,Args...)> make_bind(&some_member_func)
-template<typename R, typename TClass, typename... Args, typename Indices = std::make_index_sequence<sizeof...(Args) + 1>>
-auto make_bind(R(TClass::* fn)(Args...)) -> decltype(detail::make_bind_imp(fn, Indices()))
-{
-	return detail::make_bind_imp(fn, Indices());
-}
-
-template<typename R, typename TClass, typename... Args, typename Indices = std::make_index_sequence<sizeof...(Args) + 1>>
-auto make_bind(R(TClass::* fn)(Args...) const) -> decltype(detail::make_bind_imp(fn, Indices()))
-{
-	return detail::make_bind_imp(fn, Indices());
-}
-
-template<typename R, typename TClass, typename... Args, typename TObjectPointer, typename Indices = std::make_index_sequence<sizeof...(Args)>>
-auto make_bind(R(TClass::* fn)(Args...), TObjectPointer obj) -> decltype(detail::make_bind_imp(fn, obj, Indices()))
-{
-	return detail::make_bind_imp(fn, obj, Indices());
-}
-
-template<typename R, typename TClass, typename... Args, typename TObjectPointer, typename Indices = std::make_index_sequence<sizeof...(Args)>>
-auto make_bind(R(TClass::* fn)(Args...) const, TObjectPointer obj) -> decltype(detail::make_bind_imp(fn, obj, Indices()))
-{
-	return detail::make_bind_imp(fn, obj, Indices());
-}
-
-template<typename Function>
-struct function_traits :public function_traits<decltype(&Function::operator())>
-{
-};
-
-template<typename ClassType, typename ReturnType, typename... Args>
-struct function_traits<ReturnType(ClassType::*)(Args...) const>
-{
-	using function = std::function<ReturnType(Args...)>;
-};
-
-template<typename Function>
-typename function_traits<Function>::function to_function(Function& lambda)
-{
-	return static_cast<typename function_traits<Function>::function>(lambda);
-};
-
-template <class T>
-inline bool bool_cast(const T& t)
-{
-	return (t != 0);
-}
-
-template<typename T, std::size_t N>
-inline constexpr std::size_t array_szie(T(&)[N])
-{
-	return N;
-}
-
-template<typename TMap>
-inline bool contains_key(const TMap& map, typename TMap::key_type key)
-{
-	return (map.find(key) != map.end());
-}
-
-template<typename TMap, typename TKey, typename TValue>
-inline bool try_get_value(const TMap& map, const TKey& key, TValue& value)
-{
-	auto iter = map.find(key);
-	if (iter != map.end())
+	//Return current thread id as size_t (from thread local storage)
+	inline size_t thread_id()
 	{
-		value = iter->second;
-		return true;
+	#if defined(_MSC_VER) && (_MSC_VER < 1900) || defined(__clang__) && !__has_feature(cxx_thread_local)
+		return _thread_id();
+	#else
+		static thread_local const size_t tid = _thread_id();
+		return tid;
+	#endif
 	}
-	return false;
-}
 
-template<typename Enum>
-struct enum_enable_bitmask_operators
-{
-	static constexpr bool enable = false;
-};
+	inline int pid()
+	{
+	#if (TARGET_PLATFORM == PLATFORM_WINDOWS)
+		return ::_getpid();
+	#else
+		return static_cast<int>(::getpid());
+	#endif
+	}
 
-template<typename Enum>
-inline typename std::enable_if_t<enum_enable_bitmask_operators<Enum>::enable, Enum> operator | (Enum a, Enum b) {
-	return static_cast<Enum>(static_cast<std::underlying_type_t<Enum>>(a) |
-		static_cast<std::underlying_type_t<Enum>>(b));
-}
+	using FuncBindTuple = std::tuple <decltype(std::placeholders::_1), decltype(std::placeholders::_2), decltype(std::placeholders::_3), decltype(std::placeholders::_4), decltype(std::placeholders::_5), decltype(std::placeholders::_6) >;
 
-template<typename Enum>
-inline typename std::enable_if_t<enum_enable_bitmask_operators<Enum>::enable, Enum> operator & (Enum a, Enum b) {
-	return static_cast<Enum>(static_cast<std::underlying_type_t<Enum>>(a) &
-		static_cast<std::underlying_type_t<Enum>>(b));
-}
+	namespace detail
+	{
+		template<typename TFunc, std::size_t... I>
+		auto make_bind_imp(const TFunc& fn, std::index_sequence<I...>) -> decltype(std::bind(fn, typename std::tuple_element<I, FuncBindTuple>::type()...))
+		{
+			return std::bind(fn, typename std::tuple_element<I, FuncBindTuple>::type()...);
+		}
 
-template<typename Enum, typename std::enable_if_t<enum_enable_bitmask_operators<Enum>::enable, int> = 0>
-inline bool enum_has_any_bitmask(Enum v, Enum contains) {
-	using under_type = typename std::underlying_type<Enum>::type;
-	return (static_cast<under_type>(v) & static_cast<under_type>(contains)) != 0;
-}
+		template<typename TFunc, typename TObjectPointer, std::size_t... I>
+		auto make_bind_imp(const TFunc& fn, TObjectPointer obj, std::index_sequence<I...>) -> decltype(std::bind(fn, obj, typename std::tuple_element<I, FuncBindTuple>::type()...))
+		{
+			return std::bind(fn, obj, typename std::tuple_element<I, FuncBindTuple>::type()...);
+		}
+	}
+
+	//std::function<R(TClass*,Args...)> make_bind(&some_member_func)
+	template<typename R, typename TClass, typename... Args, typename Indices = std::make_index_sequence<sizeof...(Args) + 1>>
+	auto make_bind(R(TClass::* fn)(Args...)) -> decltype(detail::make_bind_imp(fn, Indices()))
+	{
+		return detail::make_bind_imp(fn, Indices());
+	}
+
+	template<typename R, typename TClass, typename... Args, typename Indices = std::make_index_sequence<sizeof...(Args) + 1>>
+	auto make_bind(R(TClass::* fn)(Args...) const) -> decltype(detail::make_bind_imp(fn, Indices()))
+	{
+		return detail::make_bind_imp(fn, Indices());
+	}
+
+	template<typename R, typename TClass, typename... Args, typename TObjectPointer, typename Indices = std::make_index_sequence<sizeof...(Args)>>
+	auto make_bind(R(TClass::* fn)(Args...), TObjectPointer obj) -> decltype(detail::make_bind_imp(fn, obj, Indices()))
+	{
+		return detail::make_bind_imp(fn, obj, Indices());
+	}
+
+	template<typename R, typename TClass, typename... Args, typename TObjectPointer, typename Indices = std::make_index_sequence<sizeof...(Args)>>
+	auto make_bind(R(TClass::* fn)(Args...) const, TObjectPointer obj) -> decltype(detail::make_bind_imp(fn, obj, Indices()))
+	{
+		return detail::make_bind_imp(fn, obj, Indices());
+	}
+
+	template<typename Function>
+	struct function_traits :public function_traits<decltype(&Function::operator())>
+	{
+	};
+
+	template<typename ClassType, typename ReturnType, typename... Args>
+	struct function_traits<ReturnType(ClassType::*)(Args...) const>
+	{
+		using function = std::function<ReturnType(Args...)>;
+	};
+
+	template<typename Function>
+	typename function_traits<Function>::function to_function(Function& lambda)
+	{
+		return static_cast<typename function_traits<Function>::function>(lambda);
+	};
+
+	template <class T>
+	inline bool bool_cast(const T& t)
+	{
+		return (t != 0);
+	}
+
+	template<typename T, std::size_t N>
+	inline constexpr std::size_t array_szie(T(&)[N])
+	{
+		return N;
+	}
+
+	template<typename TMap>
+	inline bool contains_key(const TMap& map, typename TMap::key_type key)
+	{
+		return (map.find(key) != map.end());
+	}
+
+	template<typename TMap, typename TKey, typename TValue>
+	inline bool try_get_value(const TMap& map, const TKey& key, TValue& value)
+	{
+		auto iter = map.find(key);
+		if (iter != map.end())
+		{
+			value = iter->second;
+			return true;
+		}
+		return false;
+	}
+
+	template<typename Enum>
+	struct enum_enable_bitmask_operators
+	{
+		static constexpr bool enable = false;
+	};
+
+	template<typename Enum>
+	inline typename std::enable_if_t<enum_enable_bitmask_operators<Enum>::enable, Enum> operator | (Enum a, Enum b) {
+		return static_cast<Enum>(static_cast<std::underlying_type_t<Enum>>(a) |
+			static_cast<std::underlying_type_t<Enum>>(b));
+	}
+
+	template<typename Enum>
+	inline typename std::enable_if_t<enum_enable_bitmask_operators<Enum>::enable, Enum> operator & (Enum a, Enum b) {
+		return static_cast<Enum>(static_cast<std::underlying_type_t<Enum>>(a) &
+			static_cast<std::underlying_type_t<Enum>>(b));
+	}
+
+	template<typename Enum, typename std::enable_if_t<enum_enable_bitmask_operators<Enum>::enable, int> = 0>
+	inline bool enum_has_any_bitmask(Enum v, Enum contains) {
+		using under_type = typename std::underlying_type<Enum>::type;
+		return (static_cast<under_type>(v) & static_cast<under_type>(contains)) != 0;
+	}
 }

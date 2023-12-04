@@ -98,8 +98,6 @@ static void register_signal(int argc, char* argv[])
 
 
 int main(int argc, char** argv) {
-	return_code::data res_code;
-
 	time::timezone();
 	register_signal(argc, argv);
 
