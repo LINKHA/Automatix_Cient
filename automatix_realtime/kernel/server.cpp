@@ -2,42 +2,55 @@
 
 namespace amx {
 
-IMPLEMENT_SINGLETON(server)
-return_code::data server::print_logo()
+void print_logo()
 {
 	std::cout << "***********************************	\n";
 	std::cout << "*        automatix-realtime       *	\n";
 	std::cout << "*---------------------------------*	\n";
 	std::cout << "*   version: 0.0.1                *   \n";
 	std::cout << "***********************************	\n";
-	return return_code::success;
 }
 
-return_code::data server::loadconfig()
-{
-	return return_code::success;
+server::~server() {
+
 }
 
-return_code::data server::launch(int argc, char** argv)
+int server::init(int argc, char** argv, uint32_t worker_num)
 {
+	print_logo();
 	// create id 0 context
 	std::shared_ptr<context> background = context_manager_.create_context();
 	background->with_value("argc", argc);
 	background->with_value("argv", argv);
 
-	launch_realtime();
+	worker_num = (worker_num == 0) ? 1 : worker_num;
 
-	return return_code::success;
+#if AMX_DEBUG
+	test_.init();
+#endif
+	return 0;
 }
 
-return_code::data server::exit()
+int server::run()
 {
-	return return_code::success;
+	for (;;) {
+		if (exitflag_ < 0)
+		{
+			break;
+		}
+
+		if (1) {
+
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+	return exitflag_;
 }
 
-void server::launch_realtime()
+void server::exit(int exitflag)
 {
-	/*std::call_once(_flag, &realtime::launch, &rel_time_);*/
+	exitflag_ = exitflag;
 }
+
 
 }

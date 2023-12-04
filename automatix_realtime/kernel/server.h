@@ -1,7 +1,6 @@
 #pragma once
 #include "common/singleton.hpp"
 #include "common/context.hpp"
-#include "realtime/realtime.h"
 #include "common/return_code.hpp"
 
 #include <memory>
@@ -13,30 +12,21 @@ namespace amx {
 
 class server
 {
-	REGISTER_SINGLETON(server)
 public:
-	return_code::data print_logo();
-	return_code::data loadconfig();
-	return_code::data launch(int argc, char** argv);
-	return_code::data exit();
+	server() = default;
 
-	void launch_realtime();
+	~server();
+	int init(int argc, char** argv, uint32_t worker_num);
+	int run();
+	void exit(int exitflag);
 
-	context_manager context_manager_;
-	realtime rel_time_;
-
-	
 private:
-	std::once_flag _flag;
-};
+	context_manager context_manager_;
 
-namespace g {
-	static context_manager& ctx() {
-		return server::get().context_manager_;
-	}
-	static realtime& rt() {
-		return server::get().rel_time_;
-	}
-}
+	volatile int exitflag_ = std::numeric_limits<int>::max();
+#if AMX_DEBUG
+	test::automatix_test test_;
+#endif
+};
 
 }
