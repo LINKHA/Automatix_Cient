@@ -27,16 +27,16 @@ static BOOL WINAPI ConsoleHandlerRoutine(DWORD dwCtrlType)
 	switch (dwCtrlType)
 	{
 	case CTRL_C_EVENT:
-		/*svr->stop(dwCtrlType);*/
+		svr->stop(dwCtrlType);
 		return TRUE;
 	case CTRL_CLOSE_EVENT:
 	case CTRL_SHUTDOWN_EVENT:
 	case CTRL_LOGOFF_EVENT://atmost 10 second,will force closed by system
-		/*svr->stop(dwCtrlType);
-		while (svr->get_state() != state::stopped)
+		svr->stop(dwCtrlType);
+		while (svr->get_state() != amx::state::stopped)
 		{
 			std::this_thread::yield();
-		}*/
+		}
 		return TRUE;
 	default:
 		break;
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
 	
 	s_ptr<server> rt_server = make_shared<server>();
 
-	rt_server->init(argc, argv, thread_count);
+	rt_server->init(thread_count, "");
 	rt_server->run();
 
 	return 0;

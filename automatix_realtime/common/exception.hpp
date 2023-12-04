@@ -40,7 +40,7 @@ namespace amx
 #define __FILENAME__ (strrchr(__FILE__, '/') ? (strrchr(__FILE__, '/') + 1):__FILE__)
 #endif
 
-#define MOON_CHECK(cnd,msg) {if(!(cnd)) throw moon::logic_error{(msg),__FILENAME__,__LINE__};}
+#define MOON_CHECK(cnd,msg) {if(!(cnd)) throw amx::logic_error{(msg),__FILENAME__,__LINE__};}
 
 #ifdef DEBUG
 #define MOON_ASSERT(cnd,msg) assert(cnd && msg);
