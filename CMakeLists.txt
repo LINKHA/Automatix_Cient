@@ -34,10 +34,6 @@ endmacro(source_group_by_dir)
 
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Find/)
-# add include path
-include_directories(automatix_realtime)
-include_directories(thirdparty)
-include_directories(thirdparty/ylt/thirdparty)
 
 find_package(Threads REQUIRED)
 link_libraries(Threads::Threads)
@@ -52,9 +48,7 @@ include(cmake/config.cmake)
 # add project's source such as unit test, example & benchmark
 include(cmake/subdir.cmake)
 
-
-
-add_subdirectory (automatix_realtime)
-add_subdirectory (example)
 add_subdirectory (thirdparty)
-
+add_subdirectory (automatix_realtime)
+add_subdirectory (lualib-src)
+add_subdirectory (example)

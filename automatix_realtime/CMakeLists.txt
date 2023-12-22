@@ -1,5 +1,10 @@
 set (TARGET_NAME automatix_realtime)
 
+# add include path
+include_directories(${AUTO_ROOT_PATH}/automatix_realtime)
+include_directories(${AUTO_ROOT_PATH}/thirdparty)
+include_directories(${AUTO_ROOT_PATH}/thirdparty/ylt/thirdparty)
+
 # Get all source files
 file(GLOB_RECURSE SOURCE_HEADER *.h)
 file(GLOB_RECURSE SOURCE_SRC *.cpp)
