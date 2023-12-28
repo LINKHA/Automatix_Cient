@@ -105,5 +105,3 @@
 #ifdef MAKE_LUAC
 #include "luac.c"
 #endif
-
-#include "clonefunc.c"

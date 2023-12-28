@@ -1112,7 +1112,7 @@ LUALIB_API void luaL_checkversion_ (lua_State *L, lua_Number ver, size_t sz) {
 
 // use clonefunction
 
-#include "spinlock.h"
+#include "include/spinlock.h"
 
 struct codecache {
 	struct spinlock lock;
