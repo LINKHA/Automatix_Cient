@@ -20,7 +20,7 @@
 #include "lobject.h"
 #include "lstate.h"
 #include "lstring.h"
-#include "include/atomic.h"
+#include "atomic.h"
 
 static unsigned int STRSEED;
 static ATOM_SIZET STRID = 0;
