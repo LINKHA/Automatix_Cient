@@ -3,6 +3,9 @@ set(TARGET_NAME lua)
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR})
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
 file(GLOB_RECURSE SOURCE_SRC onelua.c)
 set(SOURCE_ALL_FILES ${SOURCE_SRC})
 source_group_by_dir(SOURCE_ALL_FILES)

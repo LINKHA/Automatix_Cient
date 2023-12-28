@@ -38,16 +38,6 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Find/)
 find_package(Threads REQUIRED)
 link_libraries(Threads::Threads)
 
-include(cmake/utils.cmake)
-include(cmake/struct_pb.cmake)
-include(cmake/build.cmake)
-include(cmake/develop.cmake)
-include(cmake/install.cmake)
-# add project config, such as enable_ssl.
-include(cmake/config.cmake)
-# add project's source such as unit test, example & benchmark
-include(cmake/subdir.cmake)
-
 add_subdirectory (thirdparty)
 add_subdirectory (automatix_realtime)
 add_subdirectory (lualib-src)

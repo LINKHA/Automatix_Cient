@@ -1,6 +1,7 @@
 #include "kernel/server.h"
 #include "common/time.hpp"
 #include "common/common.hpp"
+#include "lua/lualib.h"
 
 using namespace amx;
 
@@ -100,6 +101,10 @@ static void register_signal(int argc, char* argv[])
 int main(int argc, char** argv) {
 	time::timezone();
 	register_signal(argc, argv);
+
+#ifdef LUA_CACHELIB
+	luaL_initcodecache();
+#endif
 
 	uint32_t thread_count = std::thread::hardware_concurrency();
 	
