@@ -1,7 +1,7 @@
 #include "kernel/server.h"
 #include "common/time.hpp"
 #include "common/common.hpp"
-#include "lua/lualib.h"
+#include "common/lua_utility.hpp"
 
 using namespace amx;
 

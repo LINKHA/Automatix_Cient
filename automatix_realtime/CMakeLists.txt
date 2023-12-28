@@ -3,7 +3,6 @@ set (TARGET_NAME automatix_realtime)
 # add include path
 include_directories(${AUTO_ROOT_PATH}/automatix_realtime)
 include_directories(${AUTO_ROOT_PATH}/thirdparty)
-include_directories(${AUTO_ROOT_PATH}/thirdparty/ylt/thirdparty)
 
 # Get all source files
 file(GLOB_RECURSE SOURCE_HEADER *.h)
@@ -15,3 +14,6 @@ set(SOURCE_ALL_FILES ${SOURCE_HEADER} ${SOURCE_SRC} ${SOURCE_HPP} ${SOURCE_SRC_C
 source_group_by_dir(SOURCE_ALL_FILES)
 
 add_executable(${TARGET_NAME} ${SOURCE_ALL_FILES})
+
+target_link_libraries (${TARGET_NAME} lua)
+include_directories (${AUTO_ROOT_PATH}/thirdparty/lua)
