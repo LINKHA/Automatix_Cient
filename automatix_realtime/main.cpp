@@ -2,6 +2,7 @@
 #include "common/time.hpp"
 #include "common/common.hpp"
 #include "common/lua_utility.hpp"
+#include "common/file.hpp"
 
 using namespace amx;
 
@@ -110,6 +111,13 @@ int main(int argc, char** argv) {
 	
 	s_ptr<server> rt_server = make_shared<server>();
 
+	std::filesystem::path path = std::filesystem::current_path();
+
+	auto ss = file::read_all("Debug\\example\\main_game.lua", std::ios::in);
+
+	if (file::read_all("./example/main_game.lua", std::ios::in).substr(0, 11) == "---__init__") {
+	
+	}
 	rt_server->init(thread_count, "");
 	rt_server->run();
 
