@@ -51,6 +51,23 @@ namespace amx
             }
             return 0;
         }
+
+        static std::filesystem::path get_exe_directory()
+        {
+#ifdef _WIN32
+            // Windows specific
+            wchar_t sz_path[MAX_PATH];
+            GetModuleFileNameW(NULL, sz_path, MAX_PATH);
+#else
+            // Linux specific
+            char sz_path[PATH_MAX];
+            ssize_t count = readlink("/proc/self/exe", sz_path, PATH_MAX);
+            if (count < 0 || count >= PATH_MAX)
+                return {}; // some error
+            sz_path[count] = '\0';
+#endif
+            return std::filesystem::path{ sz_path }.parent_path() / ""; 
+        }
     };
 }
 

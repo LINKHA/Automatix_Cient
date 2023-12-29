@@ -6,7 +6,7 @@
 
 using namespace amx;
 
-static w_ptr<server>  wk_server;
+static std::weak_ptr<server>  wk_server;
 
 enum class state
 {
@@ -98,7 +98,6 @@ static void register_signal(int argc, char* argv[])
 #endif
 }
 
-
 int main(int argc, char** argv) {
 	time::timezone();
 	register_signal(argc, argv);
@@ -108,15 +107,57 @@ int main(int argc, char** argv) {
 #endif
 
 	uint32_t thread_count = std::thread::hardware_concurrency();
-	
-	s_ptr<server> rt_server = make_shared<server>();
+	std::shared_ptr<server> rt_server = std::make_shared<server>();
 
-	std::filesystem::path path = std::filesystem::current_path();
+	bool enable_stdout = true;
+	std::string logfile;
+	std::string bootstrap = "../example/main_game.lua";
+	std::string loglevel;
 
-	auto ss = file::read_all("Debug\\example\\main_game.lua", std::ios::in);
+	int argn = 1;
+	if (argc <= argn)
+	{
+		return -1;
+	}
+	bootstrap = argv[argn++];
 
-	if (file::read_all("./example/main_game.lua", std::ios::in).substr(0, 11) == "---__init__") {
-	
+	if (fs::path(bootstrap).extension() != ".lua")
+	{
+		return -1;
+	}
+
+	std::string arg = "return {";
+	for (int i = argn; i < argc; ++i)
+	{
+		arg.append("'");
+		arg.append(argv[i]);
+		arg.append("',");
+	}
+	arg.append("}");
+
+	if (file::read_all(bootstrap, std::ios::in).substr(0, 11) == "---__init__") {
+		std::unique_ptr<lua_State, state_deleter> lua{ luaL_newstate() };
+		lua_State* L = lua.get();
+		luaL_openlibs(L);
+		lua_pushboolean(L, true);
+		lua_setglobal(L, "__init__");
+		lua_pushcfunction(L, traceback);
+		assert(lua_gettop(L) == 1);
+
+		int r = luaL_loadfile(L, bootstrap.data());
+		r = luaL_dostring(L, arg.data());
+		r = lua_pcall(L, 1, 1, 1);
+
+		thread_count = lua_opt_field<uint32_t>(L, -1, "thread", thread_count);
+		logfile = lua_opt_field<std::string>(L, -1, "logfile");
+		enable_stdout = lua_opt_field<bool>(L, -1, "enable_stdout", enable_stdout);
+		loglevel = lua_opt_field<std::string>(L, -1, "loglevel", loglevel);
+		std::string path = lua_opt_field<std::string>(L, -1, "path", "");
+
+		if (!path.empty()) {
+			path = amx::format("package.path='%s;'..package.path;", path.data());
+			rt_server->set_env("PATH", path);
+		}
 	}
 	rt_server->init(thread_count, "");
 	rt_server->run();

@@ -1,3 +1,0 @@
-include_directories (${AUTO_ROOT_PATH}/src)
-
-add_subdirectory (01-helloworld)

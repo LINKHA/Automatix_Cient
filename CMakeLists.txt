@@ -15,6 +15,17 @@ include(CheckCXXSourceRuns)
 include(GNUInstallDirs)
 include(GenerateExportHeader)
 
+# Macro to set output directories on all configurations
+macro (set_output_directories OUTPUT_PATH)
+    foreach (TYPE ${ARGN})
+        set (CMAKE_${TYPE}_OUTPUT_DIRECTORY ${OUTPUT_PATH})
+        foreach (CONFIG ${CMAKE_CONFIGURATION_TYPES})
+            string (TOUPPER ${CONFIG} CONFIG)
+            set (CMAKE_${TYPE}_OUTPUT_DIRECTORY_${CONFIG} ${OUTPUT_PATH})
+        endforeach ()
+    endforeach ()
+endmacro ()
+
 # Macro to add files from a directory grouped to the solution file
 macro(source_group_by_dir source_files)
     if(MSVC)
@@ -32,8 +43,8 @@ macro(source_group_by_dir source_files)
     endif(MSVC)
 endmacro(source_group_by_dir)
 
-
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Find/)
+# Set output directory for executables
+set_output_directories (${AUTO_ROOT_PATH}/bin RUNTIME PDB)
 
 find_package(Threads REQUIRED)
 link_libraries(Threads::Threads)
@@ -41,4 +52,3 @@ link_libraries(Threads::Threads)
 add_subdirectory (thirdparty)
 add_subdirectory (automatix_realtime)
 add_subdirectory (lualib-src)
-add_subdirectory (example)

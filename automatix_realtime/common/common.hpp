@@ -125,31 +125,17 @@ using namespace std::literals::string_view_literals;
 
 namespace amx
 {
-	template<typename _Ty> using s_ptr = std::shared_ptr<_Ty>;
-	template<typename _Ty> using u_ptr = std::unique_ptr<_Ty>;
-	template<typename _Ty> using w_ptr = std::weak_ptr<_Ty>;
-	template<typename _Ty1, typename _Ty2> s_ptr<_Ty1> p_static_cast(const s_ptr<_Ty2>& other) { return std::static_pointer_cast<_Ty1>(other); }
-	template<typename _Ty1, typename _Ty2> s_ptr<_Ty1> p_dynamic_cast(const s_ptr<_Ty2>& other) { return std::dynamic_pointer_cast<_Ty1>(other); }
-	template<class _Ty, class... _Types> s_ptr<_Ty> make_shared(_Types&&... args) { return std::make_shared<_Ty>(std::forward<_Types>(args)...); }
-	template<class _Ty, class... _Types> u_ptr<_Ty> make_unique(_Types&&... args) { return std::make_unique<_Ty>(std::forward<_Types>(args)...); }
-	template<typename _Ty> using enable_ptr_this = std::enable_shared_from_this<_Ty>;
-
-	using string = std::string;
-	template<typename _Ty> using vector = std::vector<_Ty>;
-	template<typename _Ty1, typename _Ty2> using unordered_map = std::unordered_map<_Ty1, _Ty2>;
-	template<typename _Ty> using unordered_set = std::unordered_set<_Ty>;
-
 	#define DECLARE_CLASS(_This,_Base) \
 	public: \
 		_This& operator=(_This&&) = delete;   \
 		_This& operator=(const _This&)= delete;  \
 		using self = _This;\
 		using super = _Base;\
-		virtual const string& get_type_name() const { return get_type_name_static(); } \
-		static const string& get_type_name_static() { static const string type(#_This); return type; } \
+		virtual const std::string& get_type_name() const { return get_type_name_static(); } \
+		static const std::string& get_type_name_static() { static const std::string type(#_This); return type; } \
 	public:
 
-	inline void print(string var) {
+	inline void print(std::string var) {
 		std::cout << var << std::endl;
 	}
 
