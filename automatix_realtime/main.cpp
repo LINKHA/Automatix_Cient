@@ -1,8 +1,10 @@
-#include "kernel/server.h"
 #include "common/time.hpp"
 #include "common/common.hpp"
 #include "common/lua_utility.hpp"
 #include "common/file.hpp"
+
+#include "kernel/server.h"
+#include "kernel/lua_service.h"
 
 using namespace amx;
 
@@ -98,6 +100,19 @@ static void register_signal(int argc, char* argv[])
 #endif
 }
 
+#ifdef MOON_ENABLE_MIMALLOC
+#include "mimalloc.h"
+void print_mem_stats()
+{
+	mi_collect(true);
+	mi_stats_print(nullptr);
+}
+#else
+void print_mem_stats()
+{
+}
+#endif
+
 int main(int argc, char** argv) {
 	time::timezone();
 	register_signal(argc, argv);
@@ -159,8 +174,99 @@ int main(int argc, char** argv) {
 			rt_server->set_env("PATH", path);
 		}
 	}
-	rt_server->init(thread_count, "");
-	rt_server->run();
+	rt_server->register_service("lua", []()->service_ptr_t {
+		return std::make_unique<lua_service>();
+		});
+
+#if TARGET_PLATFORM == PLATFORM_WINDOWS
+	rt_server->set_env("LUA_CPATH_EXT", "/?.dll;");
+#else
+	rt_server->set_env("LUA_CPATH_EXT", "/?.so;");
+#endif
+	if (!rt_server->get_env("PATH"))
+	{
+		// By default, lualib and service directories are added to the lua search path
+		auto search_path = fs::absolute(fs::current_path());
+		if (!fs::exists(search_path / "lualib"))
+			search_path = fs::absolute(directory::module_path());
+		//MOON_CHECK(fs::exists(search_path / "lualib"), "can not find moon lualib path.");
+		auto strpath = search_path.string();
+		amx::replace(strpath, "\\", "/");
+		rt_server->set_env("PATH", amx::format("package.path='%s/lualib/?.lua;%s/service/?.lua;'..package.path;", strpath.data(), strpath.data()));
+	}
+
+	//Change the working directory to the directory where the opened file is located.
+	fs::current_path(fs::absolute(fs::path(bootstrap)).parent_path());
+	directory::working_directory = fs::current_path();
+
+	rt_server->set_env("ARG", arg);
+	rt_server->set_env("THREAD_NUM", std::to_string(thread_count));
+
+	rt_server->logger()->set_enable_console(enable_stdout);
+	rt_server->logger()->set_level(loglevel);
+
+	rt_server->init(thread_count, logfile);
+
+	std::unique_ptr<amx::service_conf> conf = std::make_unique<amx::service_conf>();
+	conf->type = "lua";
+	conf->name = "bootstrap";
+	conf->source = fs::path(bootstrap).filename().string();
+	conf->memlimit = std::numeric_limits<size_t>::max();
+	auto path = rt_server->get_env("PATH");
+	if (path)
+		conf->params.append(*path);
+	conf->params.append("return {}");
+	rt_server->new_service(std::move(conf));
+	rt_server->set_unique_service("bootstrap", BOOTSTRAP_ADDR);
+
+	int exitcode = rt_server->run();
+
+	if (exitcode >= 0)
+	{
+		rt_server.reset();
+		print_mem_stats();
+		return 0;
+	}
 
 	return 0;
+}
+
+#define REGISTER_CUSTOM_LIBRARY(name, lua_c_fn)\
+            int lua_c_fn(lua_State*);\
+            luaL_requiref(L, name, lua_c_fn, 0);\
+            lua_pop(L, 1);  /* remove lib */\
+
+extern "C" {
+	void open_custom_libs(lua_State* L)
+	{
+
+#ifdef LUA_CACHELIB
+		REGISTER_CUSTOM_LIBRARY("codecache", luaopen_cache);
+#endif
+
+		//core
+		REGISTER_CUSTOM_LIBRARY("moon.core", luaopen_moon_core);
+		REGISTER_CUSTOM_LIBRARY("asio.core", luaopen_asio_core);
+		REGISTER_CUSTOM_LIBRARY("sharetable.core", luaopen_sharetable_core);
+		REGISTER_CUSTOM_LIBRARY("socket.core", luaopen_socket_core);
+		REGISTER_CUSTOM_LIBRARY("http.core", luaopen_http_core);
+		REGISTER_CUSTOM_LIBRARY("fs", luaopen_fs);
+		REGISTER_CUSTOM_LIBRARY("seri", luaopen_serialize);
+		REGISTER_CUSTOM_LIBRARY("json", luaopen_json);
+		REGISTER_CUSTOM_LIBRARY("buffer", luaopen_buffer);
+
+		//custom
+		REGISTER_CUSTOM_LIBRARY("pb", luaopen_pb);
+		REGISTER_CUSTOM_LIBRARY("crypt", luaopen_crypt);
+		REGISTER_CUSTOM_LIBRARY("aoi", luaopen_aoi);
+		REGISTER_CUSTOM_LIBRARY("clonefunc", luaopen_clonefunc);
+		REGISTER_CUSTOM_LIBRARY("random", luaopen_random);
+		REGISTER_CUSTOM_LIBRARY("zset", luaopen_zset);
+		REGISTER_CUSTOM_LIBRARY("kcp.core", luaopen_kcp_core);
+		REGISTER_CUSTOM_LIBRARY("bson", luaopen_bson);
+		REGISTER_CUSTOM_LIBRARY("mongo.driver", luaopen_mongo_driver);
+		REGISTER_CUSTOM_LIBRARY("navmesh", luaopen_navmesh);
+		REGISTER_CUSTOM_LIBRARY("uuid", luaopen_uuid);
+		REGISTER_CUSTOM_LIBRARY("schema", luaopen_schema);
+	}
 }

@@ -1,1 +1,5 @@
 add_subdirectory(${AUTO_ROOT_PATH}/thirdparty/lua)
+add_subdirectory(${AUTO_ROOT_PATH}/thirdparty/kcp)
+add_subdirectory(${AUTO_ROOT_PATH}/thirdparty/yyjson)
+add_subdirectory(${AUTO_ROOT_PATH}/thirdparty/recastnavigation)
+add_subdirectory(${AUTO_ROOT_PATH}/thirdparty/fastlz)
