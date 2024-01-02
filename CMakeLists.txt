@@ -51,4 +51,3 @@ link_libraries(Threads::Threads)
 
 add_subdirectory (thirdparty)
 add_subdirectory (automatix_realtime)
-add_subdirectory (lualib-src)
