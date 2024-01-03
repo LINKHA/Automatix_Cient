@@ -67,7 +67,7 @@ namespace amx
                 return {}; // some error
             sz_path[count] = '\0';
 #endif
-            return std::filesystem::path{ sz_path }.parent_path() / ""; 
+            return std::filesystem::path{ sz_path }.parent_path(); 
         }
     };
 }

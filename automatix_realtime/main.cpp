@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
 
 	bool enable_stdout = true;
 	std::string logfile;
-	std::string bootstrap = "../example/main_game.lua";
+	std::string bootstrap = "example/main_game.lua";
 	std::string loglevel;
 
 	int argn = 1;
@@ -149,6 +149,11 @@ int main(int argc, char** argv) {
 		arg.append("',");
 	}
 	arg.append("}");
+
+	////Change the working directory to the directory where the opened file is located.
+	fs::path working_path = file::get_exe_directory().parent_path();
+	fs::current_path(working_path);
+	directory::working_directory = fs::current_path();
 
 	if (file::read_all(bootstrap, std::ios::in).substr(0, 11) == "---__init__") {
 		std::unique_ptr<lua_State, state_deleter> lua{ luaL_newstate() };
@@ -194,10 +199,6 @@ int main(int argc, char** argv) {
 		amx::replace(strpath, "\\", "/");
 		rt_server->set_env("PATH", amx::format("package.path='%s/lualib/?.lua;%s/service/?.lua;'..package.path;", strpath.data(), strpath.data()));
 	}
-
-	//Change the working directory to the directory where the opened file is located.
-	fs::current_path(fs::absolute(fs::path(bootstrap)).parent_path());
-	directory::working_directory = fs::current_path();
 
 	rt_server->set_env("ARG", arg);
 	rt_server->set_env("THREAD_NUM", std::to_string(thread_count));
