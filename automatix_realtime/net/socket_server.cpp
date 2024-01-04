@@ -534,7 +534,7 @@ connection_ptr_t socket_server::make_connection(uint32_t serviceid, uint8_t type
         break;
     }
     default:
-        MOON_ASSERT(false, "Unknown socket protocol");
+        AMX_ASSERT(false, "Unknown socket protocol");
         break;
     }
     connection->logger(server_->logger());

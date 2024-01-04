@@ -21,7 +21,7 @@ local moon = require("moon")
 local socket = require "moon.socket"
 
 --初始化服务配置
-local db_conf= {host = "127.0.0.1", port = 6379, timeout = 1000}
+local db_conf= {host = "127.0.0.1", port = 36379, timeout = 1000}
 
 local gate_host = "0.0.0.0"
 local gate_port = 8889

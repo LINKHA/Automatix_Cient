@@ -47,7 +47,7 @@ namespace amx
                 if (!parent_path.empty() && !fs::exists(parent_path, ec))
                 {
                     fs::create_directories(parent_path, ec);
-                    MOON_CHECK(!ec, ec.message().data());
+                    AMX_CHECK(!ec, ec.message().data());
                 }
 
                 FILE* fp = nullptr;
@@ -59,7 +59,7 @@ namespace amx
                 if(nullptr == fp)
                     err = errno;
 #endif
-                MOON_CHECK(!err, amx::format("open log file '%s' failed. errno %d.", logfile.data(), err));
+                AMX_CHECK(!err, amx::format("open log file '%s' failed. errno %d.", logfile.data(), err));
                 fp_.reset(fp);
             }
             state_.store(state::ready, std::memory_order_release);

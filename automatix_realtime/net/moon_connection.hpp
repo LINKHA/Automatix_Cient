@@ -50,7 +50,7 @@ namespace amx
                     message_size_t size = static_cast<message_size_t>(data->size());
                     host2net(size);
                     [[maybe_unused]]  bool res = data->write_front(&size, 1);
-                    MOON_ASSERT(res, "tcp::send write front failed");
+                    AMX_ASSERT(res, "tcp::send write front failed");
                     data->set_flag(buffer_flag::pack_size);
                 }
             }

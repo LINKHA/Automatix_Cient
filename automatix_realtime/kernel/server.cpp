@@ -300,7 +300,7 @@ namespace amx
 	bool server::register_service(const std::string& type, register_func f)
 	{
 		auto ret = regservices_.emplace(type, f);
-		MOON_ASSERT(ret.second
+		AMX_ASSERT(ret.second
 			, amx::format("already registed service type[%s].", type.data()).data());
 		return ret.second;
 	}
@@ -424,7 +424,7 @@ namespace amx
 	{
 		std::unique_lock lck(fd_lock_);
 		size_t count = fd_watcher_.erase(fd);
-		MOON_CHECK(count == 1, "socket fd erase failed!");
+		AMX_CHECK(count == 1, "socket fd erase failed!");
 	}
 
 	size_t server::socket_num() const

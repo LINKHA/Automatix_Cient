@@ -44,7 +44,7 @@ macro(source_group_by_dir source_files)
 endmacro(source_group_by_dir)
 
 # Set output directory for executables
-set_output_directories (${AUTO_ROOT_PATH}/bin RUNTIME PDB)
+set_output_directories (${AUTO_ROOT_PATH} RUNTIME PDB)
 
 find_package(Threads REQUIRED)
 link_libraries(Threads::Threads)

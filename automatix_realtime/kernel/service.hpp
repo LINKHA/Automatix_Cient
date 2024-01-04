@@ -124,7 +124,7 @@ namespace amx
 			//redirect message
 			if (m.receiver() != receiver)
 			{
-				MOON_ASSERT(!m.broadcast(), "can not redirect broadcast message");
+				AMX_ASSERT(!m.broadcast(), "can not redirect broadcast message");
 				if constexpr (std::is_rvalue_reference_v<decltype(m)>)
 				{
 					s->get_server()->send_message(std::forward<message>(m));

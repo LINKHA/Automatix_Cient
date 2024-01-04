@@ -120,116 +120,130 @@ int main(int argc, char** argv) {
 #ifdef LUA_CACHELIB
 	luaL_initcodecache();
 #endif
-
-	uint32_t thread_count = std::thread::hardware_concurrency();
-	std::shared_ptr<server> rt_server = std::make_shared<server>();
-
-	bool enable_stdout = true;
-	std::string logfile;
-	std::string bootstrap = "example/main_game.lua";
-	std::string loglevel;
-
-	int argn = 1;
-	if (argc <= argn)
+	try
 	{
-		return -1;
-	}
-	bootstrap = argv[argn++];
+		uint32_t thread_count = std::thread::hardware_concurrency();
+		std::shared_ptr<server> rt_server = std::make_shared<server>();
 
-	if (fs::path(bootstrap).extension() != ".lua")
-	{
-		return -1;
-	}
+		bool enable_stdout = true;
+		std::string logfile;
+		std::string bootstrap = "example/main_game.lua";
+		std::string loglevel;
 
-	std::string arg = "return {";
-	for (int i = argn; i < argc; ++i)
-	{
-		arg.append("'");
-		arg.append(argv[i]);
-		arg.append("',");
-	}
-	arg.append("}");
-
-	////Change the working directory to the directory where the opened file is located.
-	fs::path working_path = file::get_exe_directory().parent_path();
-	fs::current_path(working_path);
-	directory::working_directory = fs::current_path();
-
-	if (file::read_all(bootstrap, std::ios::in).substr(0, 11) == "---__init__") {
-		std::unique_ptr<lua_State, state_deleter> lua{ luaL_newstate() };
-		lua_State* L = lua.get();
-		luaL_openlibs(L);
-		lua_pushboolean(L, true);
-		lua_setglobal(L, "__init__");
-		lua_pushcfunction(L, traceback);
-		assert(lua_gettop(L) == 1);
-
-		int r = luaL_loadfile(L, bootstrap.data());
-		r = luaL_dostring(L, arg.data());
-		r = lua_pcall(L, 1, 1, 1);
-
-		thread_count = lua_opt_field<uint32_t>(L, -1, "thread", thread_count);
-		logfile = lua_opt_field<std::string>(L, -1, "logfile");
-		enable_stdout = lua_opt_field<bool>(L, -1, "enable_stdout", enable_stdout);
-		loglevel = lua_opt_field<std::string>(L, -1, "loglevel", loglevel);
-		std::string path = lua_opt_field<std::string>(L, -1, "path", "");
-
-		if (!path.empty()) {
-			path = amx::format("package.path='%s;'..package.path;", path.data());
-			rt_server->set_env("PATH", path);
+		int argn = 1;
+		if (argc <= argn)
+		{
+			return -1;
 		}
-	}
-	rt_server->register_service("lua", []()->service_ptr_t {
-		return std::make_unique<lua_service>();
-		});
+		bootstrap = argv[argn++];
+
+		if (fs::path(bootstrap).extension() != ".lua")
+		{
+			return -1;
+		}
+
+		std::string arg = "return {";
+		for (int i = argn; i < argc; ++i)
+		{
+			arg.append("'");
+			arg.append(argv[i]);
+			arg.append("',");
+		}
+		arg.append("}");
+
+		////Make sure the program is running
+		fs::path working_path = file::get_exe_directory();
+		fs::current_path(working_path);
+		directory::working_directory = fs::current_path();
+
+		if (file::read_all(bootstrap, std::ios::in).substr(0, 11) == "---__init__") {
+			std::unique_ptr<lua_State, state_deleter> lua{ luaL_newstate() };
+			lua_State* L = lua.get();
+			luaL_openlibs(L);
+			lua_pushboolean(L, true);
+			lua_setglobal(L, "__init__");
+			lua_pushcfunction(L, traceback);
+			assert(lua_gettop(L) == 1);
+
+			int r = luaL_loadfile(L, bootstrap.data());
+			AMX_CHECK(r == LUA_OK, amx::format("loadfile %s", lua_tostring(L, -1)));
+
+			r = luaL_dostring(L, arg.data());
+			AMX_CHECK(r == LUA_OK, amx::format("%s", lua_tostring(L, -1)));
+			r = lua_pcall(L, 1, 1, 1);
+			AMX_CHECK(r == LUA_OK, amx::format("%s", lua_tostring(L, -1)));
+			AMX_CHECK(lua_type(L, -1) == LUA_TTABLE, "init must return conf table");
+
+
+			thread_count = lua_opt_field<uint32_t>(L, -1, "thread", thread_count);
+			logfile = lua_opt_field<std::string>(L, -1, "logfile");
+			enable_stdout = lua_opt_field<bool>(L, -1, "enable_stdout", enable_stdout);
+			loglevel = lua_opt_field<std::string>(L, -1, "loglevel", loglevel);
+			std::string path = lua_opt_field<std::string>(L, -1, "path", "");
+
+			if (!path.empty()) {
+				path = amx::format("package.path='%s;'..package.path;", path.data());
+				rt_server->set_env("PATH", path);
+			}
+		}
+		rt_server->register_service("lua", []()->service_ptr_t {
+			return std::make_unique<lua_service>();
+			});
 
 #if TARGET_PLATFORM == PLATFORM_WINDOWS
-	rt_server->set_env("LUA_CPATH_EXT", "/?.dll;");
+		rt_server->set_env("LUA_CPATH_EXT", "/?.dll;");
 #else
-	rt_server->set_env("LUA_CPATH_EXT", "/?.so;");
+		rt_server->set_env("LUA_CPATH_EXT", "/?.so;");
 #endif
-	if (!rt_server->get_env("PATH"))
-	{
-		// By default, lualib and service directories are added to the lua search path
-		auto search_path = fs::absolute(fs::current_path());
-		if (!fs::exists(search_path / "lualib"))
-			search_path = fs::absolute(directory::module_path());
-		//MOON_CHECK(fs::exists(search_path / "lualib"), "can not find moon lualib path.");
-		auto strpath = search_path.string();
-		amx::replace(strpath, "\\", "/");
-		rt_server->set_env("PATH", amx::format("package.path='%s/lualib/?.lua;%s/service/?.lua;'..package.path;", strpath.data(), strpath.data()));
+		if (!rt_server->get_env("PATH"))
+		{
+			// By default, lualib and service directories are added to the lua search path
+			auto search_path = fs::absolute(fs::current_path());
+			if (!fs::exists(search_path / "lualib"))
+				search_path = fs::absolute(directory::module_path());
+			//MOON_CHECK(fs::exists(search_path / "lualib"), "can not find moon lualib path.");
+			auto strpath = search_path.string();
+			amx::replace(strpath, "\\", "/");
+			rt_server->set_env("PATH", amx::format("package.path='%s/lualib/?.lua;%s/service/?.lua;'..package.path;", strpath.data(), strpath.data()));
+		}
+		//Change the working directory to the directory where the opened file is located.
+		fs::current_path(fs::absolute(fs::path(bootstrap)).parent_path());
+		directory::working_directory = fs::current_path();
+
+		rt_server->set_env("ARG", arg);
+		rt_server->set_env("THREAD_NUM", std::to_string(thread_count));
+
+		rt_server->logger()->set_enable_console(enable_stdout);
+		rt_server->logger()->set_level(loglevel);
+
+		rt_server->init(thread_count, logfile);
+
+		std::unique_ptr<amx::service_conf> conf = std::make_unique<amx::service_conf>();
+		conf->type = "lua";
+		conf->name = "bootstrap";
+		conf->source = fs::path(bootstrap).filename().string();
+		conf->memlimit = std::numeric_limits<size_t>::max();
+		auto path = rt_server->get_env("PATH");
+		if (path)
+			conf->params.append(*path);
+		conf->params.append("return {}");
+		rt_server->new_service(std::move(conf));
+		rt_server->set_unique_service("bootstrap", BOOTSTRAP_ADDR);
+
+		int exitcode = rt_server->run();
+
+		if (exitcode >= 0)
+		{
+			rt_server.reset();
+			print_mem_stats();
+			return 0;
+		}
 	}
-
-	rt_server->set_env("ARG", arg);
-	rt_server->set_env("THREAD_NUM", std::to_string(thread_count));
-
-	rt_server->logger()->set_enable_console(enable_stdout);
-	rt_server->logger()->set_level(loglevel);
-
-	rt_server->init(thread_count, logfile);
-
-	std::unique_ptr<amx::service_conf> conf = std::make_unique<amx::service_conf>();
-	conf->type = "lua";
-	conf->name = "bootstrap";
-	conf->source = fs::path(bootstrap).filename().string();
-	conf->memlimit = std::numeric_limits<size_t>::max();
-	auto path = rt_server->get_env("PATH");
-	if (path)
-		conf->params.append(*path);
-	conf->params.append("return {}");
-	rt_server->new_service(std::move(conf));
-	rt_server->set_unique_service("bootstrap", BOOTSTRAP_ADDR);
-
-	int exitcode = rt_server->run();
-
-	if (exitcode >= 0)
+	catch (std::exception& e)
 	{
-		rt_server.reset();
-		print_mem_stats();
-		return 0;
+		printf("ERROR:%s\n", e.what());
 	}
-
-	return 0;
+	return -1;
 }
 
 #define REGISTER_CUSTOM_LIBRARY(name, lua_c_fn)\

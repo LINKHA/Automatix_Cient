@@ -98,7 +98,7 @@ namespace amx
 				}
 
 				auto s = server_->make_service(conf->type);
-				MOON_ASSERT(s, amx::format("new service failed:service type[%s] was not registered", conf->type.data()).data());
+				AMX_ASSERT(s, amx::format("new service failed:service type[%s] was not registered", conf->type.data()).data());
 				s->set_id(serviceid);
 				s->logger(server_->logger());
 				s->set_unique(conf->unique);
