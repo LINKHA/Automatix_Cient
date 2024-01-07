@@ -4,7 +4,7 @@
 #include "kernel/worker.h"
 #include "kernel/server.h"
 
-#include "net/moon_connection.hpp"
+#include "net/amx_connection.hpp"
 #include "net/stream_connection.hpp"
 #include "net/ws_connection.hpp"
 
@@ -397,7 +397,7 @@ bool socket_server::set_enable_chunked(uint32_t fd, std::string_view flag)
 
     if (auto iter = connections_.find(fd); iter != connections_.end())
     {
-        auto c = std::dynamic_pointer_cast<moon_connection>(iter->second);
+        auto c = std::dynamic_pointer_cast<amx_connection>(iter->second);
         if (c)
         {
             c->set_enable_chunked(v);
@@ -520,7 +520,7 @@ connection_ptr_t socket_server::make_connection(uint32_t serviceid, uint8_t type
     {
     case PTYPE_SOCKET_MOON:
     {
-        connection = std::make_shared<moon_connection>(serviceid, type, this, std::move(sock));
+        connection = std::make_shared<amx_connection>(serviceid, type, this, std::move(sock));
         break;
     }
     case PTYPE_SOCKET_TCP:

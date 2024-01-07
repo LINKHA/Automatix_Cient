@@ -50,7 +50,7 @@
 #include <stdarg.h>
 #define strnicmp	_strnicmp
 
-inline int moon_vsnprintf(char* buffer,
+inline int amx_vsnprintf(char* buffer,
 	size_t count,
 	const char* format,
 	va_list argptr)
@@ -66,7 +66,7 @@ typedef _W64 int   ssize_t;
 #else
 #include <sys/syscall.h>
 #include <unistd.h>
-#define moon_vsnprintf vsnprintf 
+#define amx_vsnprintf vsnprintf 
 #endif
 
 #ifndef __has_feature       // Clang - feature checking macros.

@@ -4,7 +4,7 @@
 
 namespace amx
 {
-    class moon_connection : public base_connection
+    class amx_connection : public base_connection
     {
     public:
         static constexpr message_size_t MESSAGE_CONTINUED_FLAG = std::numeric_limits<message_size_t>::max();
@@ -12,7 +12,7 @@ namespace amx
         using base_connection_t = base_connection;
 
         template <typename... Args>
-        explicit moon_connection(Args&&... args)
+        explicit amx_connection(Args&&... args)
             :base_connection(std::forward<Args>(args)...)
             , flag_(enable_chunked::none)
             , header_(0)

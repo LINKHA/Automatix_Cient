@@ -1,6 +1,3 @@
-//
-// Copyright (c) 2021 Bruce https://github.com/sniper00/moon
-//
 #pragma once
 #include <cstdint>
 #include <memory>

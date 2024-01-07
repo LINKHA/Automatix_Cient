@@ -204,7 +204,7 @@ namespace amx
 
         va_list ap;
         va_start(ap, fmt);
-        int len = moon_vsnprintf(res.data(), res.size(), fmt, ap);
+        int len = amx_vsnprintf(res.data(), res.size(), fmt, ap);
         va_end(ap);
         if (len >= 0 && len <= static_cast<int>(res.size()))
         {
@@ -218,7 +218,7 @@ namespace amx
                 fmt_buffer_size *= 2;
                 res.resize(fmt_buffer_size);
                 va_start(ap, fmt);
-                len = moon_vsnprintf(res.data(), res.size(), fmt, ap);
+                len = amx_vsnprintf(res.data(), res.size(), fmt, ap);
                 va_end(ap);
                 if (len < 0)
                 {
