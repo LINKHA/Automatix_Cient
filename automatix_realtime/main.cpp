@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
 			auto search_path = fs::absolute(fs::current_path());
 			if (!fs::exists(search_path / "lualib"))
 				search_path = fs::absolute(directory::module_path());
-			//MOON_CHECK(fs::exists(search_path / "lualib"), "can not find moon lualib path.");
+			//AMX_CHECK(fs::exists(search_path / "lualib"), "can not find amx lualib path.");
 			auto strpath = search_path.string();
 			amx::replace(strpath, "\\", "/");
 			rt_server->set_env("PATH", amx::format("package.path='%s/lualib/?.lua;%s/service/?.lua;'..package.path;", strpath.data(), strpath.data()));

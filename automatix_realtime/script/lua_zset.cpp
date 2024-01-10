@@ -6,7 +6,7 @@
 
 #ifdef MOON_ENABLE_MIMALLOC
 #include "mimalloc.h"
-using zset_type = moon::zset<mi_stl_allocator>;
+using zset_type = amx::zset<mi_stl_allocator>;
 #else
 using zset_type = amx::zset<std::allocator>;
 #endif
