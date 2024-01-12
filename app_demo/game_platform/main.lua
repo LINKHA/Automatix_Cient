@@ -9,8 +9,8 @@ if _G["__init__"] then
         path = table.concat({
             "./?.lua",
             "./?/init.lua",
-            "../lualib/?.lua",   -- moon lualib 搜索路径
-            "../service/?.lua",  -- moon 自带的服务搜索路径，需要用到redisd服务
+            "../../lualib/?.lua",   -- moon lualib 搜索路径
+            "../../service/?.lua",  -- moon 自带的服务搜索路径，需要用到redisd服务
             -- Append your lua module search path
         }, ";")
     }
@@ -24,7 +24,7 @@ local moon = require("moon")
 local socket = require "moon.socket"
 
 --初始化服务配置
-local db_conf= {host = "127.0.0.1", port = 36379, timeout = 1000}
+local db_conf= {host = "127.0.0.1", port = 6379, timeout = 1000}
 
 local gate_host = "0.0.0.0"
 local gate_port = 8889
@@ -34,7 +34,7 @@ local services = {
     {
         unique = true,
         name = "db",
-        file = "../service/redisd.lua",
+        file = "../../service/redisd.lua",
         threadid = 1, ---独占线程
         poolsize = 5, ---连接池
         opts = db_conf
@@ -42,7 +42,7 @@ local services = {
     {
         unique = true,
         name = "center",
-        file = "game/service_center.lua",
+        file = "../../example/game/service_center.lua",
         threadid = 2,
     },
 }
@@ -67,7 +67,7 @@ moon.async(function ()
     while true do
         local id = moon.new_service( {
             name = "user",
-            file = "game/service_user.lua"
+            file = "../../example/game/service_user.lua"
         })
 
         local fd, err = socket.accept(listenfd, id)
