@@ -1,2 +1,2 @@
 #!/bin/bash
-./build/automatix_realtime/automatix_realtime
+automatix_realtime example/tcp_server.lua
