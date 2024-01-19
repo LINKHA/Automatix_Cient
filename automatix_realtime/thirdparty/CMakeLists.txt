@@ -1,0 +1,5 @@
+add_subdirectory(${AUTO_ROOT_PATH}/automatix_realtime/thirdparty/lua)
+add_subdirectory(${AUTO_ROOT_PATH}/automatix_realtime/thirdparty/kcp)
+add_subdirectory(${AUTO_ROOT_PATH}/automatix_realtime/thirdparty/yyjson)
+add_subdirectory(${AUTO_ROOT_PATH}/automatix_realtime/thirdparty/recastnavigation)
+add_subdirectory(${AUTO_ROOT_PATH}/automatix_realtime/thirdparty/fastlz)

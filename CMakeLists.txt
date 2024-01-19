@@ -50,5 +50,4 @@ set_output_directories (${AUTO_ROOT_PATH} RUNTIME PDB)
 find_package(Threads REQUIRED)
 link_libraries(Threads::Threads)
 
-add_subdirectory (thirdparty)
 add_subdirectory (automatix_realtime)

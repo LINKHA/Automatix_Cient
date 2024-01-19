@@ -1,10 +1,10 @@
-#include "common/time.hpp"
-#include "common/common.hpp"
-#include "common/lua_utility.hpp"
-#include "common/file.hpp"
+#include <amx_core/common/time.hpp>
+#include <amx_core/common/common.hpp>
+#include <amx_core/common/lua_utility.hpp>
+#include <amx_core/common/file.hpp>
 
-#include "kernel/server.h"
-#include "kernel/lua_service.h"
+#include <amx_core/kernel/server.h>
+#include <amx_core/kernel/lua_service.h>
 
 using namespace amx;
 
