@@ -1,5 +1,7 @@
 set (TARGET_NAME amx_gameplay)
 
+link_directories(${AUTO_ROOT_PATH}/automatix_realtime/third_lib)
+
 # add include path
 include_directories(${AUTO_ROOT_PATH}/automatix_realtime)
 include_directories(${AUTO_ROOT_PATH}/automatix_realtime/amx_gameplay)

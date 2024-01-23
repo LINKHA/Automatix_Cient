@@ -1,5 +1,7 @@
 set (TARGET_NAME amx_platform)
 
+link_directories(${AUTO_ROOT_PATH}/automatix_realtime/third_lib)
+
 # add include path
 include_directories(${AUTO_ROOT_PATH}/automatix_realtime)
 include_directories(${AUTO_ROOT_PATH}/automatix_realtime/amx_platform)
@@ -11,8 +13,9 @@ file(GLOB_RECURSE SOURCE_HEADER *.h)
 file(GLOB_RECURSE SOURCE_SRC *.cpp)
 file(GLOB_RECURSE SOURCE_HPP *.hpp )
 file(GLOB_RECURSE SOURCE_SRC_C *.c )
+file(GLOB_RECURSE SOURCE_SRC_CC *.cc )
 		
-set(SOURCE_ALL_FILES ${SOURCE_HEADER} ${SOURCE_SRC} ${SOURCE_HPP} ${SOURCE_SRC_C} )
+set(SOURCE_ALL_FILES ${SOURCE_HEADER} ${SOURCE_SRC} ${SOURCE_HPP} ${SOURCE_SRC_C} ${SOURCE_SRC_CC} )
 source_group_by_dir(SOURCE_ALL_FILES)
 
 if(MSVC)
@@ -42,3 +45,5 @@ include_directories (${AUTO_ROOT_PATH}/automatix_realtime/thirdparty/recastnavig
 
 target_link_libraries (${TARGET_NAME} fastlz)
 include_directories (${AUTO_ROOT_PATH}/automatix_realtime/thirdparty/fastlz)
+
+target_link_libraries (${TARGET_NAME} libprotobuf)
