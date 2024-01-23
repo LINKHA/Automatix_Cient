@@ -4,9 +4,9 @@
 
 namespace amx {
 
-	class tcp_client {
+	class net_client {
 	public:
-		tcp_client(asio::io_context& io_context, const std::string& server_address, const std::string& server_port)
+		net_client(asio::io_context& io_context, const std::string& server_address, const std::string& server_port)
 			: io_context_(io_context),
 			resolver_(io_context),
 			socket_(io_context) {
