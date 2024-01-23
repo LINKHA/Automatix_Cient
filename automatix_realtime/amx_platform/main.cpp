@@ -1,19 +1,18 @@
-#include <amx_core/common/time.hpp>
-#include <amx_core/net/socket_server.h>
-#include <amx_core/kernel/server.h>
+#include <amx_core/net/client.h>
 
 namespace amx {
-	class socket_client
-	{
-	public:
-		socket_client(std::shared_ptr<server> server) {
-			server_ = server;
+	int main() {
+		try {
+			asio::io_context io_context;
+			tcp_client client(io_context, "127.0.0.1", "8080");
+			client.send_data("Hello, server!\n");
+
+			io_context.run();
+		}
+		catch (std::exception& e) {
+			std::cerr << "Exception: " << e.what() << std::endl;
 		}
 
-
-	protected:
-
-	private:
-		std::shared_ptr<server> server_;
-	};
+		return 0;
+	}
 }
