@@ -14,7 +14,7 @@ namespace amx {
 
 			asio::async_connect(socket_, endpoints,
 				[this](std::error_code ec, asio::ip::tcp::endpoint endpoint) {
-					if (!ec) {
+					if (!ec) {	
 						std::cout << "Connected to server: " << endpoint << std::endl;
 						start_reading();
 					}
