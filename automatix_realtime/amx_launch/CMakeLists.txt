@@ -54,3 +54,6 @@ include_directories (${AUTO_ROOT_PATH}/automatix_realtime/thirdparty/recastnavig
 
 target_link_libraries (${TARGET_NAME} fastlz)
 include_directories (${AUTO_ROOT_PATH}/automatix_realtime/thirdparty/fastlz)
+
+target_link_libraries (${TARGET_NAME} pb)
+include_directories (${AUTO_ROOT_PATH}/automatix_realtime/thirdparty/pb)
