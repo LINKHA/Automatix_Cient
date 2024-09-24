@@ -124,6 +124,7 @@ int main(int argc, char** argv) {
 	{
 		uint32_t thread_count = std::thread::hardware_concurrency();
 		std::shared_ptr<server> rt_server = std::make_shared<server>();
+		wk_server = rt_server;
 
 		bool enable_stdout = true;
 		std::string logfile;
