@@ -1,9 +1,0 @@
-syntax = "proto3";
-option go_package = ".;proto";
-
-message move_start{
-    int64 angle      = 1; // 朝向
-    int64 move_state = 2; // 位移状态
-    int64 uid        = 3; // 单位uid
-    int64 move_time  = 4; //移动时间
-}
