@@ -1,102 +1,248 @@
----__init__---  初始化进程配置标识
+---__init__
 if _G["__init__"] then
-    local arg = ... ---这里可以获取命令行参数
+    local arg = ...
     return {
-        thread = 8, ---启动8条线程
+        thread = 16,
         enable_stdout = true,
-        logfile = string.format("log/game-%s.log", os.date("%Y-%m-%d-%H-%M-%S")),
-        loglevel = "DEBUG", ---默认日志等级
+        logfile = string.format("log/game-%s-%s.log", arg[1], os.date("%Y-%m-%d-%H-%M-%S")),
+        loglevel = "DEBUG",
         path = table.concat({
             "./?.lua",
             "./?/init.lua",
-            "../lualib/?.lua",   -- moon lualib 搜索路径
-            "../service/?.lua",  -- moon 自带的服务搜索路径，需要用到redisd服务
+            "../lualib/?.lua",
+            "../service/?.lua",
             -- Append your lua module search path
         }, ";")
     }
 end
 
---LuaPanda Debug
-require("LuaPanda").start("127.0.0.1",8818);
-
 local moon = require("moon")
+local json = require("json")
+local uuid = require("uuid")
+local httpc = require("moon.http.client")
+local serverconf = require("serverconf")
+local common = require("common")
+local schema = require("schema")
+local db = common.Database
+local CreateTable = common.CreateTable
 
-local socket = require "moon.socket"
+local arg = moon.args()
 
---初始化服务配置
-local db_conf= {host = "127.0.0.1", port = 6379, timeout = 1000}
+local function load_protocol(file)
+    local pb = require "pb"
+    local fobj = assert(io.open(file, "rb"))
+    local content = fobj:read("*a")
+    fobj:close()
+    assert(pb.load(content))
+    --- load once, then shared by other services
+    pb.share_state()
+end
 
-local gate_host = "0.0.0.0"
-local gate_port = 8889
-local client_timeout = 300
+-- If use protobuf, load *.pb file here, only need load once.
+load_protocol("protocol/proto.pb")
+schema.load(json.decode(io.readfile([[./protocol/json_verify.json]])))
 
-local services = {
-    {
-        unique = true,
-        name = "db",
-        file = "../service/redisd.lua",
-        threadid = 1, ---独占线程
-        poolsize = 5, ---连接池
-        opts = db_conf
-    },
-    {
-        unique = true,
-        name = "center",
-        file = "game/service_center.lua",
-        threadid = 2,
-    },
-}
+local function run(node_conf)
+    local db_conf = serverconf.db[node_conf.node]
 
-moon.async(function ()
-    for _, one in ipairs(services) do
-        local id = moon.new_service( one)
-        if 0 == id then
-            moon.exit(-1) ---如果唯一服务创建失败，立刻退出进程
-            return
+    local services = {
+        {
+            unique = true,
+            name = "db_openid",
+            file = "moon/service/redisd.lua",
+            threadid = 1,
+            poolsize = 5,
+            opts = db_conf.redis
+        },
+        {
+            unique = true,
+            name = "db_server",
+            file = "moon/service/redisd.lua",
+            threadid = 1,
+            opts = db_conf.redis
+        },
+        {
+            unique = true,
+            name = "db_user",
+            file = "moon/service/redisd.lua",
+            threadid = 1,
+            poolsize = 5,
+            opts = db_conf.redis
+        },
+        -- {
+        --     unique = true,
+        --     name = "db_game",
+        --     file = "moon/service/sqldriver.lua",
+        --     provider = "moon.db.pg",
+        --     threadid = 2,
+        --     poolsize = 5,
+        --     opts = db_conf.pg
+        -- },
+        {
+            unique = true,
+            name = "auth",
+            file = "game/service_auth.lua",
+            threadid = 2,
+        },
+        {
+            unique = true,
+            name = "gate",
+            file = "game/service_gate.lua",
+            host = node_conf.host,
+            port = node_conf.port,
+            threadid = 3,
+            websocket = false,
+        },
+        {
+            unique = true,
+            name = "center",
+            file = "game/service_center.lua",
+            threadid = 4,
+        },
+        {
+            unique = true,
+            name = "cluster",
+            file = "moon/service/cluster.lua",
+            url = serverconf.CLUSTER_ETC_URL,
+            threadid = 5,
+        },
+        {
+            unique = true,
+            name = "node",
+            file = "game/service_node.lua",
+            threadid = 6,
+        },
+        {
+            unique = true,
+            name = "sharetable",
+            file = "moon/service/sharetable.lua",
+            dir = "static/table",
+            threadid = 7
+        },
+        {
+            unique = true,
+            name = "mail",
+            file = "game/service_mail.lua",
+            threadid = 8
+        },
+        {
+            name = "robot",
+            file = "robot/robot.lua",
+            unique = true,
+            host = "127.0.0.1",
+            port = 12345
+        }
+    }
+
+    local function Start()
+        if moon.queryservice("db_game") > 0 then
+            CreateTable(moon.queryservice("db_game"))
         end
+
+        local data = db.loadserverdata(moon.queryservice("db_server"))
+        if not data then
+            data = { boot_times = 0 }
+        else
+            data = json.decode(data)
+        end
+        ---服务器启动次数+1
+        data.boot_times = data.boot_times + 1
+        assert(db.saveserverdata(moon.queryservice("db_server"), json.encode(data)))
+        moon.env("SERVER_START_TIMES", tostring(data.boot_times))
+        ---初始化唯一ID生成器
+        uuid.init(1, tonumber(arg[1]), data.boot_times)
+
+        ---控制服务初始化顺序,Init一般为加载DB
+        assert(moon.call("lua", moon.queryservice("auth"), "Init"))
+        assert(moon.call("lua", moon.queryservice("center"), "Init"))
+        assert(moon.call("lua", moon.queryservice("gate"), "Init"))
+        assert(moon.call("lua", moon.queryservice("node"), "Init"))
+
+        ---加载完数据后 开始接受网络连接
+        assert(moon.call("lua", moon.queryservice("cluster"), "Listen"))
+        assert(moon.call("lua", moon.queryservice("gate"), "Start"))
     end
 
-    local listenfd = socket.listen(gate_host, gate_port, moon.PTYPE_SOCKET_TCP)
-    if 0 == listenfd then
-        moon.exit(-1) ---监听端口失败，立刻退出进程
+    local server_ok = false
+    local addrs = {}
+
+    moon.async(function()
+        for _, conf in ipairs(services) do
+            local addr = moon.new_service(conf)
+            ---如果关键服务创建失败，立刻退出进程
+            if 0 == addr then
+                moon.exit(-1)
+                return
+            end
+            table.insert(addrs, addr)
+        end
+
+        local ok, err = xpcall(Start, debug.traceback)
+        if not ok then
+            moon.error("server will abort, init error\n", err)
+            moon.exit(-1)
+            return
+        end
+        server_ok = true
+    end)
+
+    ---注册进程退出信号处理
+    moon.shutdown(function()
+        print("receive shutdown")
+        moon.async(function()
+            if server_ok then
+                assert(moon.call("lua", moon.queryservice("gate"), "Gate.Shutdown"))
+                assert(moon.call("lua", moon.queryservice("center"), "Center.Shutdown"))
+                assert(moon.call("lua", moon.queryservice("auth"), "Auth.Shutdown"))
+                assert(moon.call("lua", moon.queryservice("mail"), "Mail.Shutdown"))
+
+                -- wait other service shutdown
+                local i = 5
+                while i > 0 do
+                    moon.sleep(1000)
+                    print(i .. "......")
+                    i = i - 1
+                end
+                moon.send("lua", moon.queryservice("db_server"), "save_then_quit")
+                moon.send("lua", moon.queryservice("db_user"), "save_then_quit")
+                moon.send("lua", moon.queryservice("db_openid"), "save_then_quit")
+
+                if moon.queryservice("db_game") > 0 then
+                    moon.send("lua", moon.queryservice("db_game"), "save_then_quit")
+                end
+
+                moon.kill(moon.queryservice("robot"))
+            else
+                moon.exit(-1)
+            end
+
+            ---wait all service quit
+            while true do
+                local size = moon.server_stats("service.count")
+                if size == 2 then
+                    break
+                end
+                moon.sleep(200)
+                print("bootstrap wait all service quit, now count:", size)
+            end
+
+            moon.kill(moon.queryservice("sharetable"))
+            moon.quit()
+        end)
+    end)
+end
+
+moon.async(function()
+    local response = httpc.get(string.format(serverconf.NODE_ETC_URL, arg[1]))
+    if response.status_code ~= 200 then
+        moon.error(response.status_code, response.body)
+        moon.exit(-1)
         return
     end
 
-    print("server start", gate_host, gate_port)
+    local node_conf = json.decode(response.body)
 
-    while true do
-        local id = moon.new_service( {
-            name = "user",
-            file = "game/service_user.lua"
-        })
-
-        local fd, err = socket.accept(listenfd, id)
-        if not fd then
-            print("accept",err)
-            moon.kill(id)
-        else
-            moon.send("lua", id,"start", fd, client_timeout)
-        end
-    end
-
+    moon.env("NODE", arg[1])
+    moon.env("SERVER_NAME", node_conf.type .. "-" .. tostring(node_conf.node))
+    run(node_conf)
 end)
-
-moon.shutdown(function ()
-    moon.async(function ()
-        assert(moon.call("lua", moon.queryservice("center"), "shutdown"))
-        moon.raw_send("system", moon.queryservice("db"), "wait_save")
-
-        ---wait all service quit
-        while true do
-            local size = moon.server_stats("service.count")
-            if size == 1 then
-                break
-            end
-            moon.sleep(200)
-            print("bootstrap wait all service quit, now count:", size)
-        end
-
-        moon.quit()
-    end)
-end)
-

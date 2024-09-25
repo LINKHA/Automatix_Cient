@@ -1,1 +1,3 @@
-.\amx_launch.exe .\example\tcp_server.lua
+start cmd /k .\amx_launch.exe .\example\main_hub.lua 10000 .\example\node.json
+timeout /t 1
+start cmd /k .\amx_launch.exe .\example\main_game.lua 1

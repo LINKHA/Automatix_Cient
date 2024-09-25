@@ -1,145 +1,94 @@
-local moon = require "moon"
-local socket = require "moon.socket"
-local redisd = require "redisd"
+-- require("LuaPanda").start("127.0.0.1", 8818)
+local moon = require("moon")
+local seri = require("seri")
+local buffer = require("buffer")
+local common = require("common")
 
-local addr_center = 0
+local protocol = common.protocol_pb
+local setup = common.setup
+local CmdCode = common.CmdCode
+local GameDef = common.GameDef
 
----@class client
-local client = {
-    id = moon.id,
-    name = "",
-    addr_room = 0,
-    score = 0
+local bunpack = buffer.unpack
+local wfront = buffer.write_front
+
+local mdecode = protocol.decode
+
+local fwd_addr = CmdCode.forward
+
+local id_to_name = protocol.name
+
+local redirect = moon.redirect
+
+local PTYPE_C2S = GameDef.PTYPE_C2S
+
+---@class user_context:base_context
+---@field scripts user_scripts
+local context = {
+    uid = 0,
+    scripts = {},
+    ---other service address
+    addr_room = 0
 }
 
----服务器内部命令
----@class user_command
-local command = {}
+local command = setup(context, "user")
 
----客户端命令
----@class client_command
-local client_command = {}
+local function forward(msg, msgname)
+    local address
+    local v = fwd_addr[msgname]
+    if v then
+        address = context[v]
+    end
 
-function client_command.help()
-    local help_string = [[
-
-help                #帮助
-login <name>        #登录
-score               #查询当前积分
-ready               #开始匹配
-guess <number>      #猜数字[1-100]
-quit                #退出]]
-    command.send_to_client(help_string)
-end
-
-function client_command.login(name)
-    if string.len(client.name)>0 then
-        command.send_to_client("已经登录!")
+    if not address then
+        moon.error("recv unknown message", msgname)
         return
     end
-    client.name = name
-    client.score = redisd.call(moon.queryservice("db"), "HGET", client.name, "score") or 0
-    command.send_to_client("登录成功, 当前积分:"..client.score)
-    client.addr_room = moon.call("lua", addr_center, "online", client)
+
+    redirect(msg, address, PTYPE_C2S)
 end
 
-function client_command.score()
-    if string.len(client.name)==0 then
-        command.send_to_client("需要先登录!")
-        return
-    end
-    command.send_to_client("当前积分:"..client.score)
-end
-
-function client_command.ready()
-    if string.len(client.name)==0 then
-        command.send_to_client("需要先登录!")
-        return
-    end
-    moon.send("lua", addr_center, "ready", client)
-end
-
-function client_command.guess(num)
-    if client.addr_room ==0 then
-        command.send_to_client("没有在房间中!")
-        return
-    end
-    moon.send("lua", client.addr_room, "guess", client.name, num)
-end
-
-function client_command.quit()
-    if #client.name >0 then
-        moon.send("lua", addr_center, "offline", client)
-    end
-    socket.close(client.fd)
-    moon.quit()
-end
-
------------------------------------------------
-
-function command.send_to_client(data)
-    socket.write(client.fd, data.."\n>>")
-end
-
-function command.update_room(addr_room)
-    client.addr_room = addr_room
-end
-
-function command.game_over(iswin)
-    client.addr_room = 0
-    if iswin then
-        redisd.send(moon.queryservice("db"), "Hincrby", client.name, "score", 10)
-        client.score = client.score + 10
-        command.send_to_client("当前积分:"..client.score)
+moon.raw_dispatch("C2S",function(msg)
+    local buf = moon.decode(msg, "B")
+    local msgname = id_to_name(bunpack(buf, "<H"))
+    if not command[msgname] then
+        wfront(buf, seri.packs(context.uid))
+        forward(msg, msgname)
     else
-        redisd.send(moon.queryservice("db"), "Hincrby", client.name, "score", 5)
-        client.score = client.score + 5
-        command.send_to_client("当前积分:"..client.score)
-    end
-end
-
-function command.start(fd, timeout)
-    socket.settimeout(fd, timeout)
-
-    addr_center = moon.queryservice("center")
-    socket.write(fd, "欢迎来带猜数字游戏, 输入'help'查看可用命令.\n")
-    socket.write(fd, ">>")
-
-    client.fd = fd
-
-    while true do
-        local data, err = socket.read(fd, "\n")
-        if not data then
-            client_command.quit()
-            return
-        end
-
-        local req = {}
-        for v in data:gmatch("%w+") do
-            req[#req+1] = v
-        end
-
-        if not next(req) then
-            command.send_to_client("error request format")
-        else
-            local fn = client_command[req[1]]
-            if not fn then
-                command.send_to_client("unknown command: "..req[1])
-                client_command.help()
-            else
-                moon.async(function ()
-                    fn(table.unpack(req,2))
-                end)
+        local cmd, data = mdecode(buf)
+        local fn = command[cmd]
+        moon.async(function()
+            local ok, res = xpcall(fn, debug.traceback, data)
+            if not ok then
+                moon.error(res)
+                context.S2C(CmdCode.S2CErrorCode,{code = 1}) --server internal error
+            elseif res then
+                context.S2C(CmdCode.S2CErrorCode,{code = res})
             end
-        end
-    end
-end
-
-moon.dispatch("lua", function(sender, session, cmd, ...)
-    local fn = command[cmd]
-    if fn then
-        moon.response("lua", sender, session, fn(...))
-    else
-        moon.error("unknown command", cmd, ...)
+        end)
     end
 end)
+
+context.addr_gate = moon.queryservice("gate")
+context.addr_db_user = moon.queryservice("db_user")
+if moon.queryservice("db_game") > 0 then
+    context.addr_db_user = moon.queryservice("db_game")
+end
+context.addr_center = moon.queryservice("center")
+context.addr_auth = moon.queryservice("auth")
+context.addr_mail = moon.queryservice("mail")
+
+context.S2C = function(cmd_code, mtable)
+    moon.raw_send('S2C', context.addr_gate, protocol.encode(context.uid, cmd_code, mtable))
+end
+
+moon.shutdown(function()
+    --- rewrite default behavior: Avoid automatic service exits
+end)
+
+---垃圾收集器间歇率控制着收集器需要在开启新的循环前要等待多久。 
+---增大这个值会减少收集器的积极性。
+---当这个值比 100 小的时候，收集器在开启新的循环前不会有等待。 
+---设置这个值为 200 就会让收集器等到总内存使用量达到 之前的两倍时才开始新的循环。
+---params: 垃圾收集器间歇率, 垃圾收集器步进倍率, 垃圾收集器单次运行步长“大小”
+collectgarbage("incremental",120)
