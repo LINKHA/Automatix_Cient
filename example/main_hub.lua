@@ -10,8 +10,8 @@ if _G["__init__"] then
             "./?.lua",
             "./?/init.lua",
             "game/?.lua",
-            "moon/lualib/?.lua",
-            "moon/service/?.lua",
+            "../lualib/?.lua",
+            "../service/?.lua",
             -- Append your lua module search path
         },";")
     }
@@ -41,7 +41,7 @@ local services = {
     {
         unique = true,
         name = "cluster",
-        file = "moon/service/cluster.lua",
+        file = "../service/cluster.lua",
         threadid = 1,
         url = serverconf.CLUSTER_ETC_URL,
         etc_path = "/conf.cluster?node=%s"

@@ -16,6 +16,8 @@ if _G["__init__"] then
     }
 end
 
+require("common.LuaPanda").start("127.0.0.1", 8818)
+
 local moon = require("moon")
 local json = require("json")
 local uuid = require("uuid")
@@ -49,7 +51,7 @@ local function run(node_conf)
         {
             unique = true,
             name = "db_openid",
-            file = "moon/service/redisd.lua",
+            file = "../service/redisd.lua",
             threadid = 1,
             poolsize = 5,
             opts = db_conf.redis
@@ -57,14 +59,14 @@ local function run(node_conf)
         {
             unique = true,
             name = "db_server",
-            file = "moon/service/redisd.lua",
+            file = "../service/redisd.lua",
             threadid = 1,
             opts = db_conf.redis
         },
         {
             unique = true,
             name = "db_user",
-            file = "moon/service/redisd.lua",
+            file = "../service/redisd.lua",
             threadid = 1,
             poolsize = 5,
             opts = db_conf.redis
@@ -72,7 +74,7 @@ local function run(node_conf)
         -- {
         --     unique = true,
         --     name = "db_game",
-        --     file = "moon/service/sqldriver.lua",
+        --     file = "../service/sqldriver.lua",
         --     provider = "moon.db.pg",
         --     threadid = 2,
         --     poolsize = 5,
@@ -102,7 +104,7 @@ local function run(node_conf)
         {
             unique = true,
             name = "cluster",
-            file = "moon/service/cluster.lua",
+            file = "../service/cluster.lua",
             url = serverconf.CLUSTER_ETC_URL,
             threadid = 5,
         },
@@ -115,7 +117,7 @@ local function run(node_conf)
         {
             unique = true,
             name = "sharetable",
-            file = "moon/service/sharetable.lua",
+            file = "../service/sharetable.lua",
             dir = "static/table",
             threadid = 7
         },
@@ -234,6 +236,10 @@ end
 
 moon.async(function()
     local response = httpc.get(string.format(serverconf.NODE_ETC_URL, arg[1]))
+    print("---------------------------------")
+    print_r(response)
+    print(string.format(serverconf.NODE_ETC_URL, arg[1]))
+    print("---------------------------------")
     if response.status_code ~= 200 then
         moon.error(response.status_code, response.body)
         moon.exit(-1)
