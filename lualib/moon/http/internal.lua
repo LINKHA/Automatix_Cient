@@ -328,9 +328,7 @@ function M.read_request(fd, prefix_data, opt)
     end
 
     local headers = request.headers
-    print_r(request)
 
-    print_r(headers)
     if headers["transfer-encoding"] ~= 'chunked' and not headers["content-length"] then
         headers["content-length"] = "0"
     end

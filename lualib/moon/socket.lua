@@ -1,7 +1,6 @@
 local moon = require("moon")
 local core = require("asio.core")
 
-local make_session = moon.make_session
 local id = moon.id
 
 local close = core.close
@@ -12,7 +11,8 @@ local write = core.write
 local udp = core.udp
 local unpack_udp = core.unpack_udp
 
-local flag_close = 2
+local mask_close<const> = 2
+local mask_raw<const> = 32
 
 local supported_tcp_protocol = {
     [moon.PTYPE_SOCKET_TCP] = "tcp",
@@ -26,16 +26,15 @@ local supported_tcp_protocol = {
 ---@class socket : asio
 local socket = core
 
+socket.mask_raw = mask_raw
+
 ---@async
 ---@param listenfd integer
 ---@param serviceid? integer
 function socket.accept(listenfd, serviceid)
+    assert(listenfd>0, "Invalid listenfd")
     serviceid = serviceid or id
-    local sessionid = make_session()
-    if not accept(listenfd, sessionid, serviceid) then
-        error("invalid accept param")
-    end
-    local fd, err = moon.wait(sessionid)
+    local fd, err = moon.wait(accept(listenfd, serviceid))
     if not fd then
         return nil, err
     end
@@ -43,13 +42,14 @@ function socket.accept(listenfd, serviceid)
 end
 
 function socket.start(listenfd)
-    accept(listenfd, 0, id)
+    assert(listenfd>0, "Invalid listenfd")
+    accept(listenfd, id, 0)
 end
 
 ---@async
 ---@param host string
 ---@param port integer
----@param protocol integer|string # "tcp", "ws", "moon" 
+---@param protocol integer|string # "tcp", "ws", "moon"
 ---@param timeout? integer # millseconds
 function socket.connect(host, port, protocol, timeout)
     assert(supported_tcp_protocol[protocol], "not support")
@@ -57,9 +57,7 @@ function socket.connect(host, port, protocol, timeout)
         protocol = supported_tcp_protocol[protocol]
     end
     timeout = timeout or 0
-    local sessionid = make_session()
-    connect(host, port, protocol, sessionid, timeout)
-    local fd, err = moon.wait(sessionid)
+    local fd, err = moon.wait(connect(host, port, protocol, timeout))
     if not fd then
         return nil, err
     end
@@ -68,17 +66,29 @@ end
 
 --- NOTE:  used only when protocol == moon.PTYPE_SOCKET_TCP
 ---@async
----@param delim string @read until reach the specified delim string from the socket
+---@param delim string @Read until reach the specified delim string from the socket. Max length is 7 bytes.
 ---@param maxcount? integer
 ---@overload fun(fd: integer, count: integer) @ read a specified number of bytes from the socket.
 function socket.read(fd, delim, maxcount)
-    local sessionid = make_session()
-    read(fd, sessionid, delim, maxcount)
-    return moon.wait(sessionid)
+    local session, data = read(fd, delim, maxcount)
+    if session and data then
+        return data
+    end
+    return moon.wait(session, data)
 end
 
+---@param fd integer
+---@param data string|buffer_ptr|buffer_shr_ptr
 function socket.write_then_close(fd, data)
-    write(fd, data, flag_close)
+    write(fd, data, mask_close)
+end
+
+--- This function sends raw network data, bypassing any message encoding.
+--- If you need to send data that must be encoded in a specific way, you should encode the data before calling this function.
+---@param fd integer
+---@param data string|buffer_ptr|buffer_shr_ptr The data to be written. This can be a string, a buffer pointer, or a shared buffer pointer.
+function socket.write_raw(fd, data)
+    write(fd, data, mask_raw)
 end
 
 local socket_data_type = {

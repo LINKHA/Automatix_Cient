@@ -29,9 +29,6 @@ include_directories (${AUTO_ROOT_PATH}/automatix_realtime/amx_core)
 target_link_libraries (${TARGET_NAME} amx_core_lua_api)
 include_directories (${AUTO_ROOT_PATH}/automatix_realtime/amx_core_lua_api)
 
-target_link_libraries (${TARGET_NAME} amx_platform)
-include_directories (${AUTO_ROOT_PATH}/automatix_realtime/amx_platform)
-
 target_link_libraries (${TARGET_NAME} amx_gameplay)
 include_directories (${AUTO_ROOT_PATH}/automatix_realtime/amx_gameplay)
 

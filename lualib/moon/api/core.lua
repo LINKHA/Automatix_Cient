@@ -8,6 +8,9 @@ error("DO NOT REQUIRE THIS FILE")
 --- lightuserdata, cpp type `message*`
 ---@class message_ptr
 
+--- userdata buffer_shr_ptr
+---@class buffer_shr_ptr
+
 --- lightuserdata, cpp type `char*`
 ---@class cstring_ptr
 
@@ -69,6 +72,9 @@ function core.kill(addr) end
 --- query **unique** service's address by name
 function core.queryservice(name) end
 
+---@return integer
+function core.next_sequence() end
+
 --- set or get env
 ---@param key string
 ---@param value? string
@@ -100,22 +106,14 @@ function core.now() end
 --- - 'E' message:sessionid()
 --- - 'Z' message:bytes()
 --- - 'N' message:size()
---- - 'B' message:buffer()
+--- - 'B' message:get_buffer()
+--- - 'L' return buffer_ptr,leak buffer ownership from message
 --- - 'C' message:buffer():data() and message:buffer():size()
 ---@param msg message_ptr
 ---@param pattern string
 ---@return ...
 ---@nodiscard
 function core.decode(msg, pattern) end
-
----clone message, but share buffer field
----@param msg message_ptr
----@return userdata
-function core.clone(msg) end
-
----release clone message
----@param msg message_ptr
-function core.release(msg) end
 
 ---redirect a message to other service
 function core.redirect(msg, receiver, mtype, sender, sessionid) end
@@ -139,10 +137,10 @@ function asio.listen(host, port, protocol) end
 
 ---send data to fd
 ---@param fd integer
----@param data string|buffer_ptr
----@param flag? integer
+---@param data string|buffer_ptr|buffer_shr_ptr
+---@param mask? integer
 ---@return boolean
-function asio.write(fd, data, flag) end
+function asio.write(fd, data, mask) end
 
 ---@param fd integer
 ---@param m message_ptr

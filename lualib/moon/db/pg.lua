@@ -150,8 +150,7 @@ end
 
 local function send_message(self, t, data)
     local buf = concat(data)
-    local len = bsize(buf)
-    wfront(buf, t, strpack(">I", len+4))
+    wfront(buf, t, strpack(">I", bsize(buf)+4))
     socket.write(self.sock, buf)
 end
 
@@ -175,9 +174,8 @@ local function send_startup_message(self)
         NULL
     }
 
-    local str = buffer.concat_string(data)
-
-    socket.write(self.sock, buffer.concat_string(encode_int(#str + 4), data))
+    local startup_message = buffer.concat_string(data)
+    socket.write(self.sock, buffer.concat_string(encode_int(#startup_message + 4), startup_message))
 end
 
 local function parse_error(err_msg)
@@ -314,6 +312,8 @@ function pg.connect(opts)
     if not sock then
         return {code = "SOCKET", message = err}
     end
+
+    socket.settimeout(sock, 10)
 
     local obj = table.deepcopy(opts)
     obj.sock = sock
@@ -484,18 +484,17 @@ local function format_query_result(row_desc, data_rows, command_complete)
 end
 
 function pg.pack_query_buffer(buf)
-    wback(buf, "\0")
-    local len = bsize(buf)
-    wfront(buf, MSG_TYPE.query, strpack(">I", len+4))
+    wfront(buf, MSG_TYPE.query, strpack(">I", bsize(buf)+4+#NULL))
+    wback(buf, NULL)
 end
 
----@param sql message_ptr|string
+---@param sql buffer_shr_ptr|string
 ---@return pg_result
 function pg.query(self, sql)
     if type(sql) == "string" then
         send_message(self, MSG_TYPE.query, {sql, NULL})
     else
-        socket.write_message(self.sock, sql)
+        socket.write(self.sock, sql)
     end
     local row_desc, data_rows, err_msg
     local result, notifications
